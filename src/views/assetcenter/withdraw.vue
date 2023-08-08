@@ -14,47 +14,31 @@ import router from '@/router';
 const $store = useStore();
 const route = useRoute() // this.$route
 
-const loading = ref<boolean>(false);
 const userInfo = computed(()=>$store.state.userinfo);
+
 const Store:any = reactive({data:{
+  loading:false,  //加载页面
   userInfo:'',    //登录信息
   txmoneyList:[], //提现列表
-  czmoneyItem:{}  //充值渠道详情
+  czmoneyItem:{}, //充值渠道详情
+  active:2,       //TAb默认索引
+  tabStore:[
+    {title:'充值',value:1},
+    {title:'提现',value:2},
+  ],
+  recharge:'',
+  rechargeNew:''
 }})
-// 默认选择提现 tab
-const active = ref<number>(3);
-// 币种媒介名称
-const tabData = [
-  {title:'充值',value:1},
-  {title:'法幣',value:2},
-  {title:'提现',value:3},
-  {title:'银行卡提现',value:4},
-]
+
+// 充值 store
+// const recharge = ref();
+// const rechargeNew = ref();
 
 // 提现 Store
 const price = ref('');
 const newprice = ref('');
 const taggleSelect = ref<boolean>(false);
 const activeIndex = ref(0);//默认选中
-
-// 银行卡Store
-const bankCardName = ref<string>('');
-const bankNumber = ref<any>('');
-const bankName = ref<string>('');
-const bankCNY = ref();
-const bankNewCNY = ref();
-const bankActive = ref(0);
-const bankShow = ref(false);
-const bankSelect = [
-  {id:1,value:'法币收款2',bank:'222222222222222222222'},
-  {id:2,value:'法币收款3',bank:'333333333333333333333'},
-  {id:3,value:'小额收款',bank:'123456789987456123'},
-  {id:4,value:'法币收款4',bank:'4444444444444444444444'},
-]
-
-// 法币 store
-const amountValue = ref('');
-const amountNewValue = ref('');
 
 // 提现下拉
 const onChangeName = (event:any,key:string) => {
@@ -65,20 +49,13 @@ const onChangeName = (event:any,key:string) => {
         activeIndex.value = dataset['index']*1-1;
         taggleSelect.value = false; 
         break;
-      case 'yhk':
-        bankActive.value = dataset['index']*1-1;
-        bankShow.value = false;
     }
   }
 }
 
-// 充值 store
-const recharge = ref();
-const rechargeNew = ref();
-
-// tab切换
+// Tab切换
 const onChange = (_ev:any) => {
-  active.value = _ev.target.dataset['index']*1
+  Store.data.active = _ev.target.dataset['index']*1
 }
 
 // 金额格式科学计数法
@@ -88,14 +65,8 @@ const onUpdateBank = (value:string,key:string) => {
     case 'tx':
       newprice.value = NumberToScientfic(newValue.toFixed(4),22);
       break;
-    case 'yhk':
-      bankNewCNY.value = NumberToScientfic(newValue.toFixed(4),22);
-      break;
-    case 'crje':
-      amountNewValue.value = NumberToScientfic(newValue.toFixed(4),22);
-      break;
     case 'czsl':
-      rechargeNew.value = NumberToScientfic(newValue.toFixed(4),22);
+      Store.data.rechargeNew = NumberToScientfic(newValue.toFixed(4),22);
       break;
   }
 }
@@ -109,30 +80,21 @@ const onCopy = (val:string) => {
   .catch(() => {
     showToast('复制失败');
   })
-    }
+  }
 
-
-  const afterRead = (file:any) => {
-    // 此时可以自行将文件上传至服务器
-    console.log(file);
-  };
 
   const onSubmit = async () => {
     let res;
     $store.commit('setLoading',true);
-    if(active.value == 1){
-      if(!recharge.value){
+    if(Store.data.active == 1){
+      if(!Store.data.recharge){
         showToast('请输入充值金额');
         $store.commit('setLoading',false);
         return 
       }
-      res = await $api.getRecharge(recharge.value,Store.data.czmoneyItem['MJname']);
-    }else if(active.value == 2){
-
-    }else if(active.value == 3){
+      res = await $api.getRecharge(Store.data.recharge,Store.data.czmoneyItem['MJname']);
+    }else if(Store.data.active == 2){
       res = await $api.getUserSubmitTX(Number(price.value),Store.data.txmoneyList[activeIndex.value].MJname);
-    }else {
-
     }
     if(res){
       $store.commit('setLoading',false);
@@ -147,7 +109,7 @@ const onCopy = (val:string) => {
     // 获取路由参数
     let queryData = route.query;
     if(JSON.stringify(queryData) != "{}"){
-      active.value = Number(queryData.active);
+      Store.data.active = Number(queryData.active);
       if(queryData['id']){
         reqList.push($api.getUsermoneyItem(Number(queryData['id'])));
       }
@@ -156,21 +118,18 @@ const onCopy = (val:string) => {
     // 获取后端数据
     Promise.all(reqList)
     .then(res=>{      
-      if(res.includes('undefined')) return
-      if(res[0]['code'] != 200){
-        // showToast(res[0]['msg']);
-        setTimeout(()=>{
-          router.push('/');
-        },1000)
-        return;
-      }
+      if(res.includes(undefined)) return
+      // if(res[0]['code'] != 200){
+      //   setTimeout(()=>{
+      //     router.push('/');
+      //   },1000)
+      //   return;
+      // }
       Store.data.txmoneyList = res[0].rows;
-      console.log(res);
-
       if(res[1]){
         Store.data.czmoneyItem = res[1].data;
       }
-      loading.value = true;
+      Store.data.loading = true;
     })
 
     .catch(err=>{
@@ -182,14 +141,14 @@ const onCopy = (val:string) => {
 </script>
 
 <template>
-  <div class="page-main" v-if="loading">
+  <div class="page-main" v-if="Store.data.loading">
     <!-- tab -->
     <div class="page-tab-list" @click="onChange">
-      <div class="page-tab-item" v-for="item in tabData" :key="item.value" :class="{'active':item.value == active}" :data-index="item.value">{{ item.title }}</div>
+      <div class="page-tab-item" v-for="item in Store.data.tabStore" :key="item.value" :class="{'active':item.value == Store.data.active}" :data-index="item.value">{{ item.title }}</div>
     </div>
     <!-- content -->
     <div class="page-content">
-      <div class="page-box" :class="{'active':active == 1}">
+      <div class="page-box" :class="{'active':Store.data.active == 1}">
 
         <div class="wallet-info">
 
@@ -213,93 +172,20 @@ const onCopy = (val:string) => {
           <div class="network grey">
             <van-cell-group inset>
               <van-field 
-              v-model="recharge" 
+              v-model="Store.data.recharge" 
               placeholder="請輸入充值金額" 
               @update:model-value="(value)=>{onUpdateBank(value,'czsl')}"
               :maxlength="Store.data.czmoneyItem['ZDCZ']?String(Store.data.czmoneyItem['ZDCZ']).length:10"
                />
             </van-cell-group>
           </div>
-          <div class="order">我會得到{{ recharge? rechargeNew : '0.00' }} USDT</div>
-          <div class="recharge-btn"><van-button type="primary" size="normal" color="#2850E7">当前钱包充值</van-button></div>
+          <div class="order">我會得到{{ Store.data.recharge? Store.data.rechargeNew : '0.00' }} USDT</div>
         </div>
 
       </div>
-        <!-- file up -->
-        <div class="file-box">
-          <div class="file-tit">充值憑證</div>
-          <div class="file-cont">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAApCAYAAACsldDLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAS0SURBVHgB7VjdViJHEK6uQXQvsgvRmJOrhSdY9nLV9cgTRFxNTq4Wn0B8Atkn0DyBk6ucrBrYJ0CNZC9hn8C523OMComJmwDTnar5ExGYGUCSnOx3DkxPT3fzUV1d9dUIGCFqlUKsed1MoAkpu0fVlcD6Z8/XDmEEEDAC/PLT3pKmiS1QIqVAxbr+kIJDoaEef7byHQyIoci6JJWCpaBzhBCGEJiOP8sYEBIDk704OciRubbde8WWU1A0UTuanc9U3f6zciEFZjOlabhBtylvAaleTT9fy0MIDET2oryXp6lbzq3RMs3Nzxe/LvrNOzt+nSXSPC9hdYQkHJrsefkgK0Dt2neq2mi0Ml+kvzGCzn9f+j4xGZ0oKMfKiJgN6se+ZN0TLqSICSVjGIlsK6US9MhoNJrpMES9NUuFmIqaJYdwHRtXyXh6ve43T/QjKT/ILfLDbLcTTkSTgxB1wRaORqMVsNYW+en5F6/85mC3ztrbQkJ9kBU6NbkeoUgfhijDmo+wY9+pXK20G/Obg12JKllythr4X+ODB4np+VVhgvYUydK/Na42YQTAP/FbpxkzJz750m/8HTe4KB/Q4VFZbithZmbm/E/5MLgs71ds3xU6ucJ6v7Hd3GDZuer3TZShQDgxWWUvfz44rb398WWvsbfI1jiAOz6KAnUYA5Sp3nhtcj0ppW6TLiQ6x94i25KtGyefmjRgDJhZXC3SGYgjIO+ozn02abNyfvzDcvtY7LVI64/rJIwJSYqx8fmVN3SI101Tst8a9IkJTds9K7/2UrRHls1OosTL9QLhEQwA1gyXJ/ulbtsYBLOLX+mcbFzCEaEV3LBmkeUEYIcrR2gItXPV+P0IQsLSDCRulIAlXm9QwhyDpVRWZLBcIvpwwyMrr818e1ydnlvbTAZIf3eI3ogb60eGIewIdt1ZLWcx48XImU+dMTr7DYREJ9F2DKNfWS8jihK3ydJplEpuuA/JV3zzsw9Rg9rWjlC2seLnMBa2rWuvh5p4giT3Us7ixbD5vpOofTCUtTgF+yJ91oclTPwMq0ElEyr6sttwCCHQjWjnn52Zf6EPTViAd3bQzVhKQuADxXrUj2hPwtLchgGBno8h+Eo0F/F0pi4EFLnuCiLA2whXb7RAMLg7TyGxGhH0ZVWnbmdAfDq3mgkzngmDF4qC4fx4f9nTKoBVVEIc2o/UchABPE6gBp6rxedWjrBdAMuJh1vwLwGnbbeopJ3P8xXZ/yhy2+WFoPKij54cF7iCbnsnYcwsrFrVr5Vu8S/kZGBwm/XkxcleDv4hcEi8KfXd2G0jwl9sXao209HoBKe2BFl6m8qNlwJxpylb70yc6BnWpqagHn+a8Q177/vE10irlUCEJQG40Vag3gmJEbfBne2E2V8UWVkj42vS7PU7JILYv/Y2pxfWdnqNYeVP8TXRcxG0S0Eial8pJDabzfXOkBhpv3EeJp3XPLffTfUDwuN+jykZgC8U1GlUVUPMkxDvKk8j3TpZANNFP6VQFpt89AT6oKnEr7Nzmb6BnrdzanLycd81FjK+ySLS76GjaUOL8E44O2bAkED4D+Ej2fvCR7L3hdGTFcJ6P9YyW+/g/4y/Acwifh9OyjR6AAAAAElFTkSuQmCC" alt="">
-            <van-uploader :after-read="afterRead" >
-              <div class="file-btn">选择文件</div>
-            </van-uploader>
-          </div>
-        </div>
 
       </div>
-      <div class="page-box" :class="{'active':active == 2}">
-
-        <div class="deit-list">
-          <div class="network">
-            <div>
-              <div class="network-col">
-              <div class="network-mask" @click="bankShow = !bankShow"></div>
-              <div>{{bankSelect[bankActive].value}}</div>
-              <van-icon name="arrow-down" />
-            </div>
-            </div>
-          </div>
-
-          <div class="network-select" v-show="bankShow">
-              <div class="network-col network-item" v-for="index in bankSelect" :key="index.id" @click="(event)=>onChangeName(event,'yhk')">
-                <div class="network-mask" :data-index="index.id"></div>
-                <div>{{index.value}}</div>
-              </div>
-            </div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">銀行卡號</div>
-          <div class="network">
-            <!-- <van-cell-group inset>
-              <van-field v-model="bankNumber" placeholder="銀行卡號" />
-            </van-cell-group> -->
-            <div>{{ bankSelect[bankActive].bank }}</div>
-            <div class="clone-btn" @click="onCopy(bankSelect[bankActive].bank)">Copy</div>
-          </div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">收款人</div>
-          <div class="network">
-            <div>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-          </div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">存入金額 CNY</div>
-          <div class="network">
-            <van-cell-group inset>
-              <van-field v-model="amountValue" placeholder="請輸入充值金額" @update:model-value="(value)=>{onUpdateBank(value,'crje')}" />
-            </van-cell-group>
-          </div>
-          <div class="order">我會得到{{ amountValue? amountNewValue : '0.0000' }} USDT</div>
-        </div>
-
-
-        <!-- file up -->
-        <div class="file-box">
-          <div class="file-tit">充值憑證</div>
-          <div class="file-cont">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAApCAYAAACsldDLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAS0SURBVHgB7VjdViJHEK6uQXQvsgvRmJOrhSdY9nLV9cgTRFxNTq4Wn0B8Atkn0DyBk6ucrBrYJ0CNZC9hn8C523OMComJmwDTnar5ExGYGUCSnOx3DkxPT3fzUV1d9dUIGCFqlUKsed1MoAkpu0fVlcD6Z8/XDmEEEDAC/PLT3pKmiS1QIqVAxbr+kIJDoaEef7byHQyIoci6JJWCpaBzhBCGEJiOP8sYEBIDk704OciRubbde8WWU1A0UTuanc9U3f6zciEFZjOlabhBtylvAaleTT9fy0MIDET2oryXp6lbzq3RMs3Nzxe/LvrNOzt+nSXSPC9hdYQkHJrsefkgK0Dt2neq2mi0Ml+kvzGCzn9f+j4xGZ0oKMfKiJgN6se+ZN0TLqSICSVjGIlsK6US9MhoNJrpMES9NUuFmIqaJYdwHRtXyXh6ve43T/QjKT/ILfLDbLcTTkSTgxB1wRaORqMVsNYW+en5F6/85mC3ztrbQkJ9kBU6NbkeoUgfhijDmo+wY9+pXK20G/Obg12JKllythr4X+ODB4np+VVhgvYUydK/Na42YQTAP/FbpxkzJz750m/8HTe4KB/Q4VFZbithZmbm/E/5MLgs71ds3xU6ucJ6v7Hd3GDZuer3TZShQDgxWWUvfz44rb398WWvsbfI1jiAOz6KAnUYA5Sp3nhtcj0ppW6TLiQ6x94i25KtGyefmjRgDJhZXC3SGYgjIO+ozn02abNyfvzDcvtY7LVI64/rJIwJSYqx8fmVN3SI101Tst8a9IkJTds9K7/2UrRHls1OosTL9QLhEQwA1gyXJ/ulbtsYBLOLX+mcbFzCEaEV3LBmkeUEYIcrR2gItXPV+P0IQsLSDCRulIAlXm9QwhyDpVRWZLBcIvpwwyMrr818e1ydnlvbTAZIf3eI3ogb60eGIewIdt1ZLWcx48XImU+dMTr7DYREJ9F2DKNfWS8jihK3ydJplEpuuA/JV3zzsw9Rg9rWjlC2seLnMBa2rWuvh5p4giT3Us7ixbD5vpOofTCUtTgF+yJ91oclTPwMq0ElEyr6sttwCCHQjWjnn52Zf6EPTViAd3bQzVhKQuADxXrUj2hPwtLchgGBno8h+Eo0F/F0pi4EFLnuCiLA2whXb7RAMLg7TyGxGhH0ZVWnbmdAfDq3mgkzngmDF4qC4fx4f9nTKoBVVEIc2o/UchABPE6gBp6rxedWjrBdAMuJh1vwLwGnbbeopJ3P8xXZ/yhy2+WFoPKij54cF7iCbnsnYcwsrFrVr5Vu8S/kZGBwm/XkxcleDv4hcEi8KfXd2G0jwl9sXao209HoBKe2BFl6m8qNlwJxpylb70yc6BnWpqagHn+a8Q177/vE10irlUCEJQG40Vag3gmJEbfBne2E2V8UWVkj42vS7PU7JILYv/Y2pxfWdnqNYeVP8TXRcxG0S0Eial8pJDabzfXOkBhpv3EeJp3XPLffTfUDwuN+jykZgC8U1GlUVUPMkxDvKk8j3TpZANNFP6VQFpt89AT6oKnEr7Nzmb6BnrdzanLycd81FjK+ySLS76GjaUOL8E44O2bAkED4D+Ej2fvCR7L3hdGTFcJ6P9YyW+/g/4y/Acwifh9OyjR6AAAAAElFTkSuQmCC" alt="">
-            <van-uploader :after-read="afterRead" >
-              <div class="file-btn">选择文件</div>
-            </van-uploader>
-          </div>
-        </div>
-
-      </div>
-      <div class="page-box" :class="{'active':active == 3}">
+      <div class="page-box" :class="{'active':Store.data.active == 2}">
         <div class="deit-list">
           <div class="name">鏈類型</div>
           <div class="network">ETHereum Main NetWork</div>
@@ -352,74 +238,6 @@ const onCopy = (val:string) => {
           </div>
         </div>
       </div>
-      <div class="page-box" :class="{'active':active == 4}">
-        <div class="deit-list">
-          <div class="network">
-            <div>
-              <div class="network-col">
-              <div class="network-mask" @click="bankShow = !bankShow"></div>
-              <div>{{bankSelect[bankActive].value}}</div>
-              <van-icon name="arrow-down" />
-            </div>
-            </div>
-            <div>可取款數量： 0.0000</div>
-          </div>
-
-          <div class="network-select" v-show="bankShow">
-              <div class="network-col network-item" v-for="index in bankSelect" :key="index.id" @click="(event)=>onChangeName(event,'yhk')">
-                <div class="network-mask" :data-index="index.id"></div>
-                <div>{{index.value}}</div>
-              </div>
-            </div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">銀行名稱</div>
-          <div class="network">
-            <van-cell-group inset>
-              <van-field v-model="bankCardName" placeholder="請輸入銀行名稱" />
-            </van-cell-group>
-          </div>
-          <div class="tip">注：請謹慎綁定，如需修改請聯繫客服。</div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">銀行卡號</div>
-          <div class="network">
-            <van-cell-group inset>
-              <van-field v-model="bankNumber" placeholder="銀行卡號" />
-            </van-cell-group>
-          </div>
-          <div class="tip">注：請謹慎綁定，如需修改請聯繫客服。</div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">姓名</div>
-          <div class="network">
-            <van-cell-group inset>
-              <van-field v-model="bankName" placeholder="持有" />
-            </van-cell-group>
-          </div>
-          <div class="tip">注：請謹慎綁定，如需修改請聯繫客服。</div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">提款金額 CNY</div>
-          <div class="network">
-            <van-cell-group inset>
-              <van-field v-model="bankCNY" placeholder="請輸入提款金額" @update:model-value="(value)=>{onUpdateBank(value,'yhk')}" />
-            </van-cell-group>
-          </div>
-        </div>
-
-        <div class="deit-list">
-          <div class="name">
-            <span>提現費用：1%</span>
-            <span>實際到賬：{{bankCNY?bankNewCNY:'0.000'}}</span>
-          </div>
-        </div>
-
-      </div>
     </div>
 
     <div class="submit-Box"><van-button type="primary" block color="#2850E7" @click="onSubmit">提交</van-button></div>
@@ -462,7 +280,7 @@ const onCopy = (val:string) => {
     overflow: hidden;
     text-align: center;
     .page-tab-item{
-      flex-basis: 25%;
+      flex-basis: 50%;
       color: #4D4D4D;
       height: 47px;
       line-height: 47px;

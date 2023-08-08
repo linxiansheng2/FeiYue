@@ -25,7 +25,6 @@ const Store:any = reactive({data:{
     current:0,
     profitData:[]
 }})
-const active = ref(0);
 const accountList = [
     {name:'充幣',url:'/assetcenter/deposit'},
     {name:'提幣',url:'/assetcenter/withdraw'},
@@ -77,7 +76,7 @@ const setEchartOption = (list:any[]) => {
       {
         left: 'left',
         top: '5%',
-        text: `Total profit: ${Store.data.todayProfit} USDT`,
+        text: `Total Profit: ${Store.data.todayProfit} USDT`,
         textStyle:{
           color:'#5AD0B6',
           fontSize:'14px'
@@ -154,11 +153,7 @@ onMounted(()=>{
     Promise.all(requestArr)
     .then((res:any[])=>{
       console.log('数据',res);
-      if(res && res.length){
-        if(res[0].code != 200){
-          // showToast(res[0].msg)
-          return;
-        }
+      if(res.includes(undefined)) return;
 
         for (const key in res[0]) {
             Store.data.money.forEach((item:any)=>{
@@ -170,10 +165,9 @@ onMounted(()=>{
         }
         Store.data.todayProfit = res[0]['todayProfit'];
         Store.data.totalUsdt = res[0]['totalUsdt'];
-        setTimeout(() => {setEchartOption(res[1].data)}, 0)
-      }
-      loading.value = true;
-
+        // 防止ECHARTS捕获不到DOM
+        setTimeout(() => {setEchartOption(res[1].data)}, 300)
+        loading.value = true;
     })
     .catch((err)=>{
       console.log(err);
@@ -213,9 +207,11 @@ onMounted(()=>{
                             <img class="tabaccount-ico" :src="item.ico" alt="ico">
                             <span class="tabaccount-name">{{item.title}}</span>
                         </div>
-                        <div><span>{{item.count}} ({{item.Proportion.toFixed(5)}}%)</span></div>
+                        <div><span>{{item.count}} ({{item.Proportion?item.Proportion.toFixed(5):0}}%)</span></div>
                     </div>
-                    <div class="tabaccount-progress"><van-progress color="#2850E7" stroke-width="8" :percentage="item.Proportion" :show-pivot="false" /></div>
+                    <div class="tabaccount-progress">
+                      <van-progress color="#2850E7" stroke-width="8" :percentage="item.Proportion ? item.Proportion:0" :show-pivot="false" />
+                    </div>
                 </div>
             </div>
         </div>

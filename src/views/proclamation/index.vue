@@ -5,9 +5,7 @@ export default {
 </script>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import {useRoute} from  'vue-router';
 import $api  from '@/https';
-const route = useRoute();
 const loading = ref<boolean>(false);
 const Store:any = reactive({data:{
     data:[]
@@ -19,9 +17,6 @@ const getStore = async () => {
     let res = await $api.getBulletin(0);
     if(res && res['code'] == 200){
         Store.data.data = res.rows;
-        console.log(res)
-
-    }else{
         console.log(res)
     }
     loading.value = true;
@@ -35,10 +30,10 @@ onMounted(()=>{
 <template>
   <div class="page-main" v-if="loading">
     <div class="bulletin-list" v-if="Store.data.data.length">
-        <van-cell class="bulletin-cell" v-for="item in Store.data.data" :key="item.id" :to="`/proclamation/articleDetails/${item.id}`">
+        <van-cell class="bulletin-cell" v-for="(item,index) in Store.data.data" :key="item.id" :to="`/proclamation/articleDetails/${item.id}`">
         <template #title>
             <div class="bulletin-item" :data-id="item.id">
-                <span class="order">{{ item.tosort }}</span>
+                <span class="order">{{ index+1 }}</span>
                 <p class="title"><span>{{ item.title }}</span></p>
             </div>
         </template>

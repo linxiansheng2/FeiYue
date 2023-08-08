@@ -47,7 +47,10 @@ export default {
 	},
 	getusers: async function(){
 		//获取当前钱包地址
-		return user[0];
+		if(user != undefined){
+			return user[0];
+		}
+		return user;
 	},
 	ercshijian: async function(){
 		// u.events.Transfer({

@@ -57,6 +57,10 @@ export default {
       feature4_desc:'24 X 7 live multilingual support. ',
       media:'Media Evaluation',
       platformInfo :'Partner',
+      cztitle:'Quick Recharge',
+      czsubtitle:'Fast And Safe',
+      cz:'Recharge',
+
   },
   assetcenter:{
     submit_btn:'Submit',

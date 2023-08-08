@@ -35,8 +35,6 @@
     "src/**/*",// 添加配置
     "src/**/*.tsx",
     "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

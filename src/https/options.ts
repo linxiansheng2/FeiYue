@@ -36,7 +36,7 @@ export default {
     },
     // 期权交易下单选项
     getSubmitOptions(){
-        return instance.get('api/public/QQJYoptions.php/options')
+        return instance.post('api/public/QQJYoptions.php/options')
     },
     // 期权交易手续费
     getHandlingfee(){
@@ -54,7 +54,11 @@ export default {
             represent
         })
     },
-
-    // 
+    //期权交易订单列表 
+    getQQJYOrderList(State:number,pageNum:number = 1,pageSize:number = 10){
+        return instance.post('api/clien/QQJYOrder.php/list',{
+            State,pageNum,pageSize
+        })
+    }
 
 }

@@ -30,7 +30,6 @@
   }
 
   onMounted(()=>{
-    console.log('app');
     getConfig();
     $store.commit('setLoading',false);
   })

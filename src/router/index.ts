@@ -41,14 +41,6 @@ const routes: Array<RouteRecordRaw> = [
       component: () => import('../views/share/index.vue'),
   },
   {
-      path: '/login',
-      name: 'login',
-      component: () => import('../views/login.vue'),
-      meta: { 
-          title: '登录测试',
-      },
-  },
-  {
       name: "404",
       path: "/:pathMatch(.*)*",
       component: () => import('../views/NotFound.vue'),

@@ -7,24 +7,30 @@ const instance:AxiosInstance = axios.create({
 import store from "@/store";
 import { showToast } from "vant";
 const langArray:any = {
-  'zh':1,
-  'en':2
+  'zh':0,   //繁体中文
+  'en':1,   //英语
+  'jap':2,  //日语
+  'kr':3,   //韩语
+  'fr':4,   //法语
+  'rus':5,  //俄语
+  'ger':6,   //德语
+  'es':7,   //西班牙语
 }
 
 var msg = '';
 // 请求拦截器
 instance.interceptors.request.use((config:any):any  => {
-  config.headers.Authorization = sessionStorage.getItem("token");
-  // const Languagetype:string | null = window.localStorage.getItem('language');
+  // 重置全局响应massage
+  msg = '';
   // 获取浏览器语言或上一次记录的语言
-  // const lang = (navigator.language || 'en').toLocaleLowerCase();
-  // const language = localStorage.getItem('language') || lang.split('-')[0] || 'zh';
+  const Languagetype:string = window.localStorage.getItem('language') || (navigator.language || 'en').toLocaleLowerCase().split('-')[0] || 'zh';
+  // 获取token
+  config.headers['Authorization'] = sessionStorage.getItem("token");
+  config.headers['Languagetype'] = langArray[Languagetype];
+  // 允许启用全局加载动画
   if(store.getters.getUseloading){
     store.commit('setLoading',true);
   }
-  msg = '';
-
-  // config.headers['Languagetype'] = 1;
   return config
 },(err: AxiosError) => {
     return new Promise((reject) => reject(err.response))
@@ -53,7 +59,11 @@ instance.interceptors.response.use((response:AxiosResponse) => {
       default:break;
     }
     msg && showToast(msg);
+    if(code == 5001){
+      sessionStorage.removeItem('vuex')
+    }
   }
+
   return response.data ? response.data : response
 },(err: AxiosError) => {
   return new Promise((reject) => reject(err.response))

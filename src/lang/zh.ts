@@ -57,6 +57,9 @@ export default {
       feature4_desc:'24 X 7 实时多语言支持。',
       media:'媒體評價',
       platformInfo :'合作夥伴',
+      cztitle:'快速充值',
+      czsubtitle:'快速且安全',
+      cz:'充值',
   },
   undefined:{
     undefined:'页面不存在'

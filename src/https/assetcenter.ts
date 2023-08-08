@@ -64,5 +64,17 @@ export default {
 		return instance.post('api/clien/usermoney.php/swap',{
 			money,from_user,to_user
 		},{headers:{"content-type": "multipart/form-data"}})
-	}
+	},
+	// 充值记录
+	getUserRechargelist(pageNum:number = 1,pageSize:number = 10){
+		return instance.post('api/clien/usermoneyOrderlist.php/recharge',{
+			pageNum,pageSize
+		})
+	},
+	// 提现记录
+	getUserWithdrawlist(pageNum:number = 1,pageSize:number = 10){
+		return instance.post('api/clien/usermoneyOrderlist.php/withdraw',{
+			pageNum,pageSize
+		})
+	},
 }

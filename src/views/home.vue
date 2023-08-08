@@ -12,17 +12,28 @@ import {useStore} from 'vuex'
 const $store = useStore();
 const router = useRouter();
 // 首页数据
-const homeStore:any = reactive({data:{
-  banner:[],
-  bulletin:[],
-  cooperate:[],
-  czmoneylist:[]
+const Store:any = reactive({data:{
+  loading:false,  //加载
+  banner:[],      //banner
+  bulletin:[],    //公告
+  cooperate:[],   //合作伙伴
+  czmoneylist:[], //充值渠道
+  mediaData:[
+  {txt:'LOGOIPSUM002 has, as a reputable and one of the most well-known crypto platforms'},
+  {txt:'Heavy hitter when it comes to the sheer amount of coins available, LOGOIPSUM002 provides access to a wide library of altcoins at low fees.'},
+  {txt:'comes to the sheer amount of coins available'},
+  {txt:'comes to LOGOIPSUM002 provides access to a wide library of '},
+  ],              //媒体评价
+  mediaBody:'',   //媒体评价文本
+  active:0,       //行情索引
+  hotcoinactive:0,//二级行情
+  czmoneyIndex:0, //充值渠道索引
+  swiperIndex:1,  //媒体评价索引
+  showSelect:false,//充值下拉表
+  swiperWidth:100,//banner宽度
+  product:1,      //产品查询
+  productList:[], //产品列表
 }})
-const loading = ref<boolean>(false);
-const active = ref(0); // tab
-const hotcoinactive = ref(0); // hotcointab
-const swiperIndex = ref(1); //媒体评价索引
-const swiperWidth = ref(100);
 const hotcoinData = reactive({data:[
   {id:0,title:'Huobi'},
   {id:1,title:'Kucoin'},
@@ -37,15 +48,13 @@ const hotcoinData = reactive({data:[
   {id:10,title:'huobi'},
 ]})
 
-// 充值
+// 充值登录后显示
 const loginStore = computed(()=>$store.state.login);
-const showSelect = ref<boolean>(false);
-const czmoneyIndex = ref(0);
 
 const onDeposit = (event:any) => {
   const {dataset} = event.target;
-  czmoneyIndex.value = dataset.index-1;
-  showSelect.value = false
+  Store.data.czmoneyIndex = dataset.index-1;
+  Store.data.showSelect = false
 }
 
 // 跳转充值
@@ -54,28 +63,21 @@ const onCzmoney = () => {
     path:'/assetcenter/withdraw',
     query:{
       active:1,
-      id:homeStore.data.czmoneylist[czmoneyIndex.value].id
+      id:Store.data.czmoneylist[Store.data.czmoneyIndex].id
     }
   })
 }
 
-// 媒体评价
-const mediaData:any = reactive({data:[
-  {txt:'LOGOIPSUM002 has, as a reputable and one of the most well-known crypto platforms'},
-  {txt:'Heavy hitter when it comes to the sheer amount of coins available, LOGOIPSUM002 provides access to a wide library of altcoins at low fees.'},
-  {txt:'comes to the sheer amount of coins available'},
-  {txt:'comes to LOGOIPSUM002 provides access to a wide library of '},
-]})
-const mediaCont = ref('');
+// 媒体评价切换
 const onChange = (index:number) => {
-  // console.log('当前 Swipe 索引：' + index);
-  swiperIndex.value = index+1;
-  mediaCont.value = mediaData.data[index].txt;
+  Store.data.swiperIndex = index+1;
+  Store.data.mediaBody = Store.data.mediaData[index].txt;
 }
 
-const onClickTab = (event:Event) => {
-  console.log(event);
-  
+// 切换行情
+const onClickTab = async (event:Event|any) => {
+  const res = await $api.getQQJYproduct(event.name+1);
+  Store.data.productList = res.data;
 }
 
 let requestArr = [
@@ -83,21 +85,21 @@ let requestArr = [
   $api.getBulletin(0),
   $api.getCooperate(),
   $api.getUsermoneylist(),
-  // $api.getQQJYproduct(),
-  // $api.getRecommendlist(),
-  // $api.getList()
+  $api.getQQJYproduct(Store.data.product)
 ]
 onMounted(()=>{
-  swiperWidth.value = document.documentElement.clientWidth*0.65;
-  mediaCont.value = mediaData.data[0].txt;  
+  Store.data.swiperWidth = document.documentElement.clientWidth*0.65;
+  Store.data.mediaBody = Store.data.mediaData[0].txt;  
   Promise.all(requestArr)
   .then((res:any[])=>{
-    homeStore.data.banner = res[0].rows;
-    homeStore.data.bulletin = res[1].rows;
-    homeStore.data.cooperate = res[2].rows;
-    homeStore.data.czmoneylist = res[3].rows;
+    if(res.includes(undefined)) return
+    Store.data.banner = res[0].rows;
+    Store.data.bulletin = res[1].rows;
+    Store.data.cooperate = res[2].rows;
+    Store.data.czmoneylist = res[3].rows;
+    Store.data.productList = res[4].data;
     // console.log(res);
-    loading.value = true;
+    Store.data.loading = true;
   })
   .catch((err)=>{
     console.log(err);
@@ -107,22 +109,25 @@ onMounted(()=>{
 </script>
 
 <template>
-    <div v-if="loading">
+    <div v-if="Store.data.loading">
         <!-- poster start -->
-        <section class="poster">
-          <div class="posterTitle">{{$t('home.posterTitle')}}</div>
-          <div class="posterText">{{$t('home.posterText')}}</div>
-          <div class="posterTip">
-          <img class="posterTip-img" src="../assets/silder/tip.png"/>
-            {{$t('home.posterTip')}}<span class="posterSpan">255 USDT</span>
+        <section class="poster-wrap">
+          <div class="poster-box">
+            <div class="posterTitle">{{$t('home.posterTitle')}}</div>
+            <div class="posterText">{{$t('home.posterText')}}</div>
+            <div class="posterTip">
+            <img class="posterTip-img" src="../assets/silder/tip.png"/>
+              {{$t('home.posterTip')}}<span class="posterSpan">255 USDT</span>
+            </div>
           </div>
         </section>
 
         <!-- banner start -->
-        <section class="banner-wrap" v-show="homeStore.data.banner.length">
+        <section class="banner-wrap" v-show="Store.data.banner.length">
             <div class="banner-box">
-              <van-swipe :autoplay="5000"  :width="swiperWidth" :show-indicators="false" >
-                <van-swipe-item v-for="item in homeStore.data.banner" :key="item['id']">
+              <van-swipe :autoplay="5000"  
+              :width="Store.data.swiperWidth" :show-indicators="false" loop>
+                <van-swipe-item v-for="item in Store.data.banner" :key="item['id']">
                   <img :src="item['img']" />
                 </van-swipe-item>
               </van-swipe>
@@ -133,22 +138,22 @@ onMounted(()=>{
         <section class="deposit-wrap" v-show="loginStore">
           <div class="deposit-box">
             <div class="head">
-              <span class="title">快速充值</span>
-              <span class="subtitle">快速且安全</span>
+              <span class="title">{{$t('home.cztitle')}}</span>
+              <span class="subtitle">{{$t('home.czsubtitle')}}</span>
             </div>
             <div class="content">
               <div class="content-left">
                   <div class="content-item">
-                    <div class="content-mask" @click="showSelect = !showSelect"></div>
-                    <img class="content-img" :src="homeStore.data.czmoneylist[0].Icon">
-                    <div>{{ `${homeStore.data.czmoneylist[czmoneyIndex].ZSname} - ${homeStore.data.czmoneylist[czmoneyIndex].Lname}` }}</div>
+                    <div class="content-mask" @click="Store.data.showSelect = !Store.data.showSelect"></div>
+                    <img class="content-img" :src="Store.data.czmoneylist[Store.data.czmoneyIndex].Icon">
+                    <div>{{ `${Store.data.czmoneylist[Store.data.czmoneyIndex].ZSname} - ${Store.data.czmoneylist[Store.data.czmoneyIndex].Lname}` }}</div>
                     <div class="content-icon">
-                      <van-icon :name="!showSelect?'arrow-down':'arrow-up'" />
+                      <van-icon :name="!Store.data.showSelect?'arrow-down':'arrow-up'" />
                     </div>
                 </div>
                 <!-- down -->
-                <div class="content-select" v-show="showSelect">
-                  <div class="content-item" v-for="item in homeStore.data.czmoneylist" :key="item.id" @click="onDeposit" :class="{'active': czmoneyIndex == item.id}">
+                <div class="content-select" v-show="Store.data.showSelect">
+                  <div class="content-item" v-for="item in Store.data.czmoneylist" :key="item.id" @click="onDeposit" :class="{'active': Store.data.czmoneyIndex == item.id}">
                     <div class="content-mask" :data-index="item.id"></div>
                     <img class="content-img" :src="item.Icon">
                     <div>{{`${item.ZSname} - ${item.Lname}`}}</div>
@@ -156,16 +161,16 @@ onMounted(()=>{
                 </div>
               </div>
 
-              <div class="content-btn" @click="onCzmoney">充值</div>
+              <div class="content-btn" @click="onCzmoney">{{$t('home.cz')}}</div>
             </div>
           </div>
         </section>
 
         <!-- news start -->
-        <section class="news-wrap" v-if="homeStore.data.bulletin.length">
+        <section class="news-wrap" v-if="Store.data.bulletin.length">
             <div class="news-box">
               <van-swipe class="news-swiper" :autoplay="2000" style="height: 50px;" vertical :show-indicators="false">
-                <van-swipe-item v-for="(item,index) in homeStore.data.bulletin" :key="index">
+                <van-swipe-item v-for="(item,index) in Store.data.bulletin" :key="index">
                   <div class="news-item">
                     <van-cell center to="/proclamation">
                       <template #title>
@@ -188,10 +193,10 @@ onMounted(()=>{
         <!-- hotcoin-tab start -->
         <section class="hotcoin-wrap">
           <div class="hotcoin-part">
-            <van-tabs v-model:active="active" shrink>
+            <van-tabs v-model:active="Store.data.active" shrink>
               <van-tab v-for="(item,index) in hotcoinData.data" :key="index">
                 <template #title>
-                   <span class="hotcoin-title" :class="{'active':(item.id)==active}">{{item.title}}</span>
+                   <span class="hotcoin-title" :class="{'active':(item.id)==Store.data.active}">{{item.title}}</span>
                 </template>
                  <!-- {{ item.id }}--{{ active }} -->
               </van-tab>
@@ -199,7 +204,7 @@ onMounted(()=>{
           </div>
 
           <div class="hotcoin-child">
-            <van-tabs v-model:active="hotcoinactive" @click-tab="onClickTab" shrink>
+            <van-tabs v-model:active="Store.data.hotcoinactive" @click-tab="onClickTab" shrink>
               <van-tab>
                 <template #title>
                    <span class="hotcoin-child-title">USDT</span>
@@ -225,23 +230,14 @@ onMounted(()=>{
                 <p class="hot-righttxt">{{$t('home.hotCurrency_right')}}</p>
               </div>
               <van-divider />
-              <div class="hotCurrency-item flex" v-for="item in 5" :key="item">
-                <div class="hotCurrency-mask"></div>
+              <div class="hotCurrency-item flex" v-for="(item,index) in Store.data.productList" :key="index">
+                <div class="hotCurrency-mask" :class="{'front':item.riseRate > 0}"></div>
                 <div class="hotCurrency-name">
-                  <img class="hotCurrency-img" src="../assets/silder/btc.png"/>
-                  <span class="hotCurrency-tit">BTC</span>
+                  <img class="hotCurrency-img" :src="item.Ioc"/>
+                  <span class="hotCurrency-tit">{{item.name}}</span>
                 </div>
-                <div class="hotCurrency-price">$1895.31</div>
-                <div class="hotCurrency-arc">-1.08%</div>
-              </div>
-              <div class="hotCurrency-item flex">
-                <div class="hotCurrency-mask front"></div>
-                <div class="hotCurrency-name">
-                  <img class="hotCurrency-img" src="../assets/silder/XRP.png"/>
-                  <span class="hotCurrency-tit">BTC</span>
-                </div>
-                <div class="hotCurrency-price">$0.31</div>
-                <div class="hotCurrency-arc front">+208%</div>
+                <div class="hotCurrency-price">${{ item.close }}</div>
+                <div class="hotCurrency-arc" :class="{'front':item.riseRate > 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
               </div>
             </div>
           </div>
@@ -293,7 +289,7 @@ onMounted(()=>{
             <h2 class="sectionTitle">{{ $t('home.media') }}</h2>
             <div class="media-box">
               <van-swipe @change="onChange" :autoplay="2000">
-                <van-swipe-item v-for="index in 4" :key="index" class="cus-swiper-item" :class="{'active':swiperIndex == index}">
+                <van-swipe-item v-for="index in 4" :key="index" class="cus-swiper-item" :class="{'active':Store.data.swiperIndex == index}">
                   <div class="user-avatar">
                     <img :src="getAssetURL(`silder/media_${index-1}.png`)" />
                   </div>
@@ -304,7 +300,7 @@ onMounted(()=>{
                   <div class="custom-indicator">
                     <van-text-ellipsis
                       rows="7"
-                      :content="mediaCont"
+                      :content="Store.data.mediaBody"
                     />
                   </div>
                 </template>
@@ -320,7 +316,7 @@ onMounted(()=>{
             <h2 class="sectionTitleCen">{{ $t('home.platformInfo') }}</h2>
             <van-divider />
         <div class="platformInfo-list">
-          <div class="platformInfo-item" v-for="(item,index) in homeStore.data.cooperate" :key="item.id">
+          <div class="platformInfo-item" v-for="(item,index) in Store.data.cooperate" :key="item.id">
             <div class="platformInfo-img">
               <img class="platformInfo-logo" :src="item.img" />
             </div>
@@ -365,6 +361,7 @@ onMounted(()=>{
   .deposit-box{
     .head{
       .flex-dom(flex-start);
+      margin-bottom: 5px;
       .title{
         font-style: normal;
         font-weight: 400;
@@ -425,6 +422,7 @@ onMounted(()=>{
           top: 0;
           width: 100%;
           height: 100%;
+          z-index: 2;
         }
         .content-icon{
           position: absolute;
@@ -473,19 +471,23 @@ onMounted(()=>{
   color: rgba(0,0,0,.6);
   text-align: center;
 }
-.poster{
+.poster-wrap{
   position: relative;
   font-style: normal;
   text-align: center;
   margin-top: 18px;
-  border-radius: 15px;
-  background: #fff;
-  padding: 15px 0;
-  .posterTitle{
+  padding: @wrapPadd;
+  .poster-box{
+    border-radius: 15px;
+    background: #fff;
+    padding: 15px;
+    .posterTitle{
     font-weight: 700;
     font-size: 20px;
     line-height: 150%;
     color: #4d4d4d;
+    text-transform: capitalize;
+    word-break:break-word;
   }
   .posterText{
     margin: 18px 0;
@@ -511,6 +513,8 @@ onMounted(()=>{
       color: #2ba6fd;
     }
   }
+  }
+
 }
 
 // banner
@@ -521,9 +525,9 @@ onMounted(()=>{
   overflow: hidden;
   margin-bottom: 15px;
   .banner-box{
-    padding: 25px 0 0 15px;
+    padding: 15px 0 0 15px;
     .van-swipe-item{
-      height: 125px;
+      height: 105px;
       img{
         height: 100%;
         border-radius: 13px;
@@ -640,6 +644,7 @@ onMounted(()=>{
         background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
         -webkit-animation: hotCurrency 1s .6s ease both;
         -moz-animation: hotCurrency 1s .6s ease both;
+        animation: hotCurrency 1s .6s ease both;
       }
       .hotCurrency-mask.front{
         background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));

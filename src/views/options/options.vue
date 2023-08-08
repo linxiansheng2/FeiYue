@@ -28,6 +28,19 @@ const Store:any = reactive({data:{
   options_trading:{},   //期权交易玩法
   recommendIndex:0,     //产品索引
   recommendList:[],     //列表产品
+  comboInfo:'',         //下单选项文字
+  comboActions:[],      //下单选项属性
+  placeholder:'',       //下单金额限制
+  comboIndex:0,         //
+  ratio:'0.00',         //下单收益率
+}})
+
+// 下单数据
+const formData:any = reactive({data:{
+  comboInfoId:0,
+  amount:'',
+  Bid:1,
+  ZD:0
 }})
 
 // K线走势数据
@@ -40,19 +53,6 @@ const TotalTrades = reactive<any>({data:{}});
 const showTimeCard = ref(false);
 const showRangeCard = ref(false);
 
-const comboInfo = ref<string>('');    //下单选项文字
-const comboActions = ref<any[]>([]);  //下单选项属性
-const placeholder = ref<string>('');  //下单金额限制
-const ratio = ref<string|number>('0.00');        //下单收益率
-const comboIndex = ref<number>(0);
-
-const formData = reactive({data:{
-  comboInfoId:0,
-  amount:'',
-  Bid:1,
-  ZD:0
-}})
-
 var time:any = null;
 
 // 下单重置
@@ -62,22 +62,23 @@ const actionsRange = [
   { name: '|>0.001%。'},
 ];
 
-// 选择时间事件
+// 选择时间
 const onSelect = (action: any, index: number) => {
     showTimeCard.value = false;
-    comboInfo.value = action.name;
-    console.log(action);
-    placeholder.value = action.maxmoney;
+    Store.data.comboInfo = action.name;
+    Store.data.placeholder = action.maxmoney;
     formData.data.comboInfoId = action.id;
-    comboIndex.value = index;
+    Store.data.comboIndex = index;
     onUpdatemount(formData.data.amount);
+    console.log(action);
 };
 
 const onUpdatemount = (value: string) => {
-  ratio.value = (Number(value) * comboActions.value[comboIndex.value].ratio).toFixed(2);
+  if(!Store.data.comboActions.length) return;
+  Store.data.ratio = (Number(value) * Store.data.comboActions[Store.data.comboIndex].ratio).toFixed(2);
 }
 
-
+// 价格范围
 const onSelectRange = (item:any) => {
   showRangeCard.value = false;
   // actionsRange
@@ -95,7 +96,7 @@ const onSubmit = async () => {
     showToast(res['msg']);
   }
   formData.data = formDataClone;
-  Store.data.show.value = false;
+  Store.data.show = false;
 }
 
 // Echarts 标题样式
@@ -122,8 +123,9 @@ const splitData = (rawData: number[][]) => {
   let volumes = [];
   let categoryData = [];
   for (let i = 0; i < rawData.length; i++) {
-    categoryData.unshift(dayjs.unix(rawData[i][5]).format('HH:mm'))
-    values.unshift(rawData[i]);
+    // categoryData.unshift(dayjs.unix(rawData[i][5]).format('HH:mm'))
+    categoryData.unshift(dayjs.unix(rawData[i].splice(5, 1)[0]).format('HH:mm'));
+    values.push(rawData[i]);
     volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
   }
   return {
@@ -144,7 +146,7 @@ const calculateMA = (dayCount: number, data: { values: number[][] }) => {
     for (var j = 0; j < dayCount; j++) {
       sum += data.values[i - j][1];
     }
-    result.push(+(sum / dayCount).toFixed(2));
+    result.push(+(sum / dayCount).toFixed(3));
   }
   return result;
 }
@@ -160,7 +162,10 @@ const setEchartOption = (list:any[][]) => {
   if(!myChart){
     myChart = echarts.init(chartDom);
   }
-  var data = splitData(list);
+  
+  let data = splitData(list);
+  console.log(data);
+  
   const dataMA5 = calculateMA(5, data);
   const dataMA10 = calculateMA(10, data);
   const dataMA20 = calculateMA(20, data);
@@ -172,7 +177,7 @@ const setEchartOption = (list:any[][]) => {
         textStyle
       },
       {
-        top: '60%',
+        top: '65%',
         left: 'left',
         text: 'VOL',
         textStyle
@@ -219,8 +224,8 @@ const setEchartOption = (list:any[][]) => {
         axisLine: { show: false },//轴线
         axisLabel: { show: true}, // 轴刻度
         axisTick: { show:false },
-        min: 'dataMin',
-        max: 'dataMax',
+        // min: 'dataMin',
+        // max: 'dataMax',
       }
     ],
     yAxis: [
@@ -252,7 +257,7 @@ const setEchartOption = (list:any[][]) => {
     ],
     visualMap: {
       show: false,
-      seriesIndex: 0,
+      seriesIndex: 4,
       dimension: 2,
       pieces: [
         {
@@ -280,16 +285,8 @@ const setEchartOption = (list:any[][]) => {
       ],
     series: [
       {
-        name: 'volume',
-        type: 'bar',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: data.volumes,
-        barWidth:'50%'
-      },
-      {
-        type: 'candlestick',
         name: 'Day K',
+        type: 'candlestick',
         data: data.values,
         itemStyle: {
           color: Store.data.upColor,
@@ -338,6 +335,14 @@ const setEchartOption = (list:any[][]) => {
           width: 1
         }
       },
+      {
+        name: 'Volume',
+        type: 'bar',
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: data.volumes,
+        barWidth:'50%'
+      },
     ]
   };
 
@@ -381,35 +386,30 @@ const handlemouseClick = (event:MouseEvent) => {
       }
 }
 
+// 切换产品列表
 const onChangeList = async (_ev:any) => {
   const { dataset } = _ev.target;
   Store.data.recommendIndex = Number(dataset['index']);
   Store.data.sildershow = false;
-  getQQJYKX('1min');
-  const res2 = await $api.getTotalTrades(dataset['value']);
-  res2.list.forEach((item:any,index:number)=>{
+  const res = await $api.getTotalTrades(dataset['value']);
+  res.list.forEach((item:any,index:number)=>{
     item.date = dayjs(item.date*1000).format("HH:mm:ss");
     item.width = 200 * ++index/10 * (Number(item.amount)/10)
   });
-
-  TotalTrades.data = res2.list;
+  TotalTrades.data = res.list;
   Store.data.tabindex = 0;
+  formData.data.Bid = Store.data.recommendList[Number(dataset['index'])].id;
+  getQQJYKX('1min');
 }
 
 // 获取产品列表
 const getList = async () => {
-  const res = await $api.getList();
-  // const res = await $api.getQQJYproduct(1);
-  // const res2 = await $api.getQQJYproduct(2);
-  // const res3 = await $api.getQQJYproduct(3);
-
+  // const res = await $api.getList();
+  const res = await $api.getQQJYproduct('');
   if(res && res['code'] == 200){
     Store.data.recommendList = res.data;
+    formData.data.Bid = res.data[0].id;
   }
-  console.log('产品列表',res);
-  // console.log('产品列表',res2);
-  // console.log('产品列表',res2);
-
 }
 // 生命周期
 onMounted(()=>{
@@ -422,6 +422,10 @@ onMounted(()=>{
     $api.getAuxiliary('options_trading_Xck')
   ])
   .then((res:any[])=>{
+    if(res.includes(undefined)||res[0]['code'] == 5001){
+      return
+    };
+    
     let list:any = []
     res[0].list.forEach((item:any) => {
       list.push(Object.values(item).map(Number));
@@ -443,15 +447,13 @@ onMounted(()=>{
       Store.data.useOrder = false;
     }
 
-    comboActions.value = res[2].data;
-    comboInfo.value = res[2].data.length ? res[2].data[0].name : '';
-    placeholder.value = res[2].data.length ? res[2].data[0].maxmoney : '0'
+    Store.data.comboActions = res[2].data;
+    Store.data.comboInfo = res[2].data.length ? res[2].data[0].name : '';
+    Store.data.placeholder = res[2].data.length ? res[2].data[0].maxmoney : '0'
     TotalTrades.data = res[1].list;
     Store.data.options_trading = res[3].data1;
     loading.value = true;
-
-    setTimeout(()=>{setEchartOption(list)},500);
-    // console.log('数据',res);
+    setTimeout(()=>{setEchartOption(list)},200);
   })
   .catch((err)=>{
     console.log(err);
@@ -489,7 +491,7 @@ onUnmounted(()=>{
         <div class="candlesticks-topPrice">
           <div class="variety">
             <div class="variety-title" @click="Store.data.sildershow = !Store.data.sildershow">
-              {{Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].ZSname:''}} 
+              {{Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].ZSname:'USDT'}} 
               <van-icon name="arrow-down" />
             </div>
             <div class="variety-price" :class="{'red':Number(KxStore.data.quotes.riseRate)<0?true:false}">
@@ -549,19 +551,19 @@ onUnmounted(()=>{
         <!-- 说明按钮 -->
         <div class="buy-tip" @click="Store.data.showTip = true"><van-icon name="warning" size="25" color="#F7931A" /></div>
         <div class="buy-content">
-          <div v-if="Store.data.useOrder">
+          <!-- <div v-if="Store.data.useOrder"> -->
+          <div>
             <!-- QQJYoptions 没有的情况禁止使用此模块 -->
             <div v-show="!Store.data.showTip">
-
             <div class="buy-select">
               <div class="buy-name">
-                <img src="../../assets/silder/btc.png" alt="">
+                <img :src="Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].Ioc:'#'" :alt="Store.data.recommendList[Store.data.recommendIndex].name">
                 <div class="buy-info">
-                  <p class="buy-name">BTC</p>
+                  <p class="buy-name">{{Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].name:'USDT'}} </p>
                   <p class="buy-flog">buy <van-tag color="#00c6931a" :text-color="!formData.data.ZD?'#00C693':'red'">{{!formData.data.ZD?'涨':'跌'}}</van-tag></p>
                 </div>
               </div>
-              <div class="buy-time"><van-icon name="clock-o" color="#333333" />  {{ comboInfo }}</div>
+              <div class="buy-time"><van-icon name="clock-o" color="#333333" />  {{ Store.data.comboInfo }}</div>
             </div>
             <van-divider />
 
@@ -569,7 +571,7 @@ onUnmounted(()=>{
               <p class="buy-card-tit">選擇時間</p>
               <div class="buy-card-item">
                 <div class="buy-card-select low3" @click="showTimeCard = true" >
-                  <van-icon name="clock-o" color="#333333"  />{{ comboInfo }}<van-icon name="arrow-down" color="#333333" />
+                  <van-icon name="clock-o" color="#333333"  />{{ Store.data.comboInfo }}<van-icon name="arrow-down" color="#333333" />
                 </div>
                 <div class="buy-card-state" :class="{'active':!formData.data.ZD}" @click="formData.data.ZD = 0">涨</div>
                 <div class="buy-card-state" :class="{'active':formData.data.ZD }" @click="formData.data.ZD = 1">跌</div>
@@ -581,7 +583,7 @@ onUnmounted(()=>{
               <div class="buy-card-item">
                 <div class="buy-card-select low1" @click="showRangeCard = true">
                   <p class="buy-card-flag" :class="{'Dsy':formData.data.ZD}"><van-icon :name="!formData.data.ZD?'plus':'minus'" :color="!formData.data.ZD?'#00C693':'red'" /> {{!formData.data.ZD?'涨':'跌'}} | >0.001%</p>
-                  <p class="buy-card-txt">(*{{!comboActions.length?'xxx':comboActions[comboIndex].ratio}})</p>
+                  <p class="buy-card-txt">(*{{!Store.data.comboActions.length?'xxx':Store.data.comboActions[Store.data.comboIndex].ratio}})</p>
                   <van-icon name="arrow-down" color="#333333" />
                 </div>
               </div>
@@ -591,7 +593,9 @@ onUnmounted(()=>{
               <p class="buy-card-tit">購買金額</p>
               <div class="buy-card-item">
                 <div class="buy-card-select price-left">
-                  <p class="buy-card-logo"><img src="../../assets/silder/btc.png" alt=""></p>
+                  <!-- <p class="buy-card-logo">
+                    <img src="../../assets/silder/btc.png" alt="">
+                  </p> -->
                   <p>USDT</p>
                 </div>
                 <div class="buy-card-select price-right">
@@ -599,21 +603,21 @@ onUnmounted(()=>{
                     <van-field 
                       v-model="formData.data.amount" 
                       type="number" 
-                      :placeholder="`>=${placeholder}USDT`" 
+                      :placeholder="`>=${Store.data.placeholder}USDT`" 
                       @update:model-value="onUpdatemount"
                       /></div>
-                  <p @click="formData.data.amount = !comboActions.length?'':comboActions[comboIndex].maxmoney">Max</p>
+                  <p @click="formData.data.amount = !Store.data.comboActions.length?'':Store.data.comboActions[Store.data.comboIndex].maxmoney">Max</p>
                 </div>
               </div>
             </div>
-            <div class="earnings">預期收益：<span>{{ratio}}</span></div>
+            <div class="earnings">預期收益：<span>{{Store.data.ratio}}</span></div>
             <van-button type="primary" color="#3C5FE7" block @click="onSubmit">確認下單</van-button>
             </div>
           </div>
-
+<!-- 
           <div v-else>
             <van-empty v-show="!Store.data.showTip" description="Under Maintenance" />
-          </div>
+          </div> -->
 
           <div class="buytip-wrap" v-show="Store.data.showTip">
             <h2 class="buytip-title">{{Store.data.options_trading.title}}</h2>
@@ -624,19 +628,15 @@ onUnmounted(()=>{
         </div>
       </van-action-sheet>
 
-      <van-action-sheet v-model:show="showTimeCard" :actions="comboActions" @select="onSelect" close-on-click-action/>
+      <van-action-sheet v-model:show="showTimeCard" :actions="Store.data.comboActions" @select="onSelect" close-on-click-action/>
       <!-- range -->
       <van-action-sheet v-model:show="showRangeCard" @select="onSelectRange" close-on-click-action>
-        <div class="buy-Range-list">
-          <!-- <div class="buy-Range-item" v-for="(item,index) in actionsRange" :key="index" @click="()=>{ onSelectRange(index) }">
-            <span class="buy-Range-flog" :class="{'Dsy':formData.data.ZD}">{{ item.name }}</span>
-            <span class="buy-Range-info">回报率 {{ comboActions[comboIndex].ratio }}</span>
-          </div> -->
+        <!-- <div class="buy-Range-list">
           <div class="buy-Range-item" @click="showRangeCard = false">
             <span class="buy-Range-flog" :class="{'Dsy':formData.data.ZD}">{{ !formData.data.ZD?'涨':'跌' }} |>0.001%。</span>
             <span class="buy-Range-info">回报率 {{ comboActions[comboIndex].ratio }}</span>
           </div>
-        </div>
+        </div> -->
       </van-action-sheet>
     </div>
 
@@ -644,10 +644,10 @@ onUnmounted(()=>{
           <div class="recommend-list">
             <div class="title"><span>現貨行情</span></div>
             <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
-              <div class="mask" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index"></div>
+              <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index"></div>
               <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
-              <div class="close">close</div>
-              <div class="riseRate">riseRate</div>
+              <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
+              <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
             </div>
           </div>
       </van-overlay>
@@ -669,6 +669,15 @@ onUnmounted(()=>{
     -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
+}
+
+.multiEllipsis(@line:2) {
+    overflow : hidden;
+    word-break: break-all;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: @line;
+    -webkit-box-orient: vertical;
 }
 #echartsBox{
   height: 400px;
@@ -708,6 +717,7 @@ onUnmounted(()=>{
         background-size: 200%;
         -webkit-animation: mask-anime 1s .4s ease both;
         -moz-animation: mask-anime 1s .4s ease both;
+        animation: mask-anime 1s .4s ease both;
         &::after{
           content: '';
           height: 1px;
@@ -720,6 +730,10 @@ onUnmounted(()=>{
           background-size: 200%;
         }
       }
+      .mask.red{
+        background: -webkit-linear-gradient(left,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
+        background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
+      }
       .name{
         color: #3b3e4e;
         width: 90px;
@@ -731,16 +745,25 @@ onUnmounted(()=>{
       }
       .close{
         color: @greenColor;
+        font-size: 17px;
+        .multiEllipsis(1);
+        flex-basis: 35%;
+      }
+      .close.red{
+        color: @redColor;
       }
       .riseRate{
         width: 70px;
         height: 27px;
         line-height: 30px;
         text-align: center;
-        font-size: 12px;
+        font-size: 13px;
         border-radius: 4px;
         color: #fff;
         background: @greenColor;
+      }
+      .riseRate.red{
+        background-color: @redColor;
       }
     }
   }

@@ -8,40 +8,59 @@ import { ref, reactive, onMounted } from 'vue'
 import $api  from '@/https';
 const loading = ref<boolean>(false);
 const Store:any = reactive({data:{
-    data:[]
+    finished:false,     //是否已加载完成，加载完成后不再触发 load 事件
+    pageNum:1,          //当前页数
+    pageSize:10,        //单页最大值
+    bulletinList:[]
 }})
 
 
 // 获取公告数据
-const getStore = async () => {
-    let res = await $api.getBulletin(0);
+const onLoad = async () => {
+    let res:any,total:any;
+    res = await $api.getBulletin(0);
     if(res && res['code'] == 200){
-        Store.data.data = res.rows;
-        console.log(res)
+        Store.data.bulletinList.push(...res.rows);
+        // 加载状态结束
+        Store.data.loading = false;
+        total = parseInt(String((res['total'] + Store.data.pageSize -1 ) / Store.data.pageSize));
+        if(Store.data.pageNum == total){
+            // 数据全部加载完成
+            Store.data.finished = true;
+        }else{
+            Store.data.pageNum+=1;
+        }
+        loading.value = true;
     }
-    loading.value = true;
-
 }
+
 onMounted(()=>{
-    getStore();
+    // getStore();
 })
 </script>
 
 <template>
-  <div class="page-main" v-if="loading">
-    <div class="bulletin-list" v-if="Store.data.data.length">
-        <van-cell class="bulletin-cell" v-for="(item,index) in Store.data.data" :key="item.id" :to="`/proclamation/articleDetails/${item.id}`">
-        <template #title>
-            <div class="bulletin-item" :data-id="item.id">
-                <span class="order">{{ index+1 }}</span>
-                <p class="title"><span>{{ item.title }}</span></p>
-            </div>
-        </template>
-        </van-cell>        
+  <div class="page-main" >
+    <div class="bulletin-list">
+        <van-list
+            v-model:loading="Store.data.loading"
+            :finished="Store.data.finished"
+            finished-text="没有更多了"
+            @load="onLoad"
+            >
+            <van-cell class="bulletin-cell" v-for="(item,index) in Store.data.bulletinList" :key="item.id" :to="`/proclamation/articleDetails/${item.id}`">
+            <template #title>
+                <div class="bulletin-item" :data-id="item.id">
+                    <span class="order">{{ index+1 }}</span>
+                    <p class="title"><span>{{ item.title }}</span></p>
+                </div>
+            </template>
+            </van-cell>  
+        </van-list>
     </div>
-    <div class="bulletin-wrap" v-else>
+    <!-- <div class="bulletin-wrap" v-else>
         <van-empty description="No Announcement"></van-empty>
-    </div>
+    </div> -->
   </div>
 </template>
 

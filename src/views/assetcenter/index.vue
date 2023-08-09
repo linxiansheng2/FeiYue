@@ -11,7 +11,6 @@ import * as echarts from 'echarts';
 import dayjs from "dayjs"
 import { showToast } from 'vant';
 type EChartsOption = echarts.EChartsOption;
-var chartDom,myChart:any;
 var option: EChartsOption;
 const loading = ref<boolean>(false);
 const Store:any = reactive({data:{
@@ -65,6 +64,8 @@ const splitData = (rawData: any[]) => {
 }
 
 const setEchartOption = (list:any[]) => {
+  var chartDom,myChart:any;
+
   chartDom = document.getElementById('Lossstatistics')!;
   // 如果存在Echart，则不进行初始化
   if(!myChart){

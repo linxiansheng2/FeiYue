@@ -658,6 +658,11 @@ onMounted(()=>{
           margin-right: 5px;
         }
       }
+      .hotCurrency-price{
+        flex-basis: 40%;
+        text-align: center;
+        .multiEllipsis(1);
+      }
       .hotCurrency-arc{
         background: red;
         padding: 5px 10px;

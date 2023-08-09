@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted ,onUnmounted} from 'vue'
+import { ref, reactive, onMounted ,onUnmounted ,getCurrentInstance } from 'vue'
 import * as echarts from 'echarts'
 import $api  from '@/https'
 import dayjs from "dayjs"
@@ -31,10 +31,20 @@ const Store:any = reactive({data:{
   comboInfo:'',         //下单选项文字
   comboActions:[],      //下单选项属性
   placeholder:'',       //下单金额限制
-  comboIndex:0,         //
+  comboIndex:0,         //下单选项索引
   ratio:'0.00',         //下单收益率
 }})
 
+// 倒计时
+const countDown = ref<any>(null);
+const timeDown = ref<number>(1000);
+// 倒计时结束
+const onFinish = () => {
+  timeDown.value = 1000;
+  Ordershow.value = false;
+};
+// 订单信息
+const Ordershow = ref<boolean>(false);
 // 下单数据
 const formData:any = reactive({data:{
   comboInfoId:0,
@@ -58,45 +68,53 @@ var time:any = null;
 // 下单重置
 const formDataClone = {...formData.data}
 
-const actionsRange = [
-  { name: '|>0.001%。'},
-];
-
-// 选择时间
+/**
+ * 选择时间
+ * @param action 当前选项所有属性
+ * @param index 选项索引
+ */
 const onSelect = (action: any, index: number) => {
     showTimeCard.value = false;
     Store.data.comboInfo = action.name;
     Store.data.placeholder = action.maxmoney;
-    formData.data.comboInfoId = action.id;
     Store.data.comboIndex = index;
     onUpdatemount(formData.data.amount);
-    console.log(action);
 };
 
+/**
+ * 
+ * @param value 下单价格
+ */
 const onUpdatemount = (value: string) => {
   if(!Store.data.comboActions.length) return;
   Store.data.ratio = (Number(value) * Store.data.comboActions[Store.data.comboIndex].ratio).toFixed(2);
 }
 
-// 价格范围
-const onSelectRange = (item:any) => {
-  showRangeCard.value = false;
-  // actionsRange
-  console.log(actionsRange[item]);
-};
-
 // 立即下单
 const onSubmit = async () => {
   if(!formData.data.amount){
-    showToast('请输入金额')
-    return 
+    showToast('请输入金额');return;
+  }else if(formData.data.amount < Store.data.comboActions[Store.data.comboIndex].minmoney){
+    showToast('金额太小'); return;
+  }else{
+    formData.data.comboInfoId = Store.data.comboActions[Store.data.comboIndex].id;
+    const res = await $api.getSubmitOrder(formData.data);
+    if(res && res['code'] == 200 ){
+      timeDown.value = Store.data.comboActions[Store.data.comboIndex].duration_m* 1000;
+      formData.data = formDataClone;
+      Store.data.show = false;
+      Ordershow.value = true;
+    }else{
+      showToast(res['msg'])
+    }
   }
-  const res = await $api.getSubmitOrder(formData.data);
-  if(res){
-    showToast(res['msg']);
-  }
-  formData.data = formDataClone;
-  Store.data.show = false;
+}
+
+// 继续下单
+const handleContinue = () => {
+  Ordershow.value = false;
+  formData.data.amount = '';
+  timeDown.value = 1000;
 }
 
 // Echarts 标题样式
@@ -153,18 +171,18 @@ const calculateMA = (dayCount: number, data: { values: number[][] }) => {
 
 // 曲线颜色
 const ncolorList = ['#FFBD09','#16C6FF','#AE23A1']; 
-var chartDom,myChart:any;
+var chartDom:any,myChart:any;
 var option: EChartsOption;
 
 const setEchartOption = (list:any[][]) => {
-  chartDom = document.getElementById('echartsBox')!;
   // 如果存在Echart，则不进行初始化
-  if(!myChart){
+  if(!myChart || !chartDom){
+    chartDom = document.getElementById('echartsBox');
     myChart = echarts.init(chartDom);
   }
   
   let data = splitData(list);
-  console.log(data);
+  // console.log(data);
   
   const dataMA5 = calculateMA(5, data);
   const dataMA10 = calculateMA(10, data);
@@ -180,7 +198,7 @@ const setEchartOption = (list:any[][]) => {
         top: '65%',
         left: 'left',
         text: 'VOL',
-        textStyle
+        textStyle 
       }
     ],
     animation: false,
@@ -353,7 +371,6 @@ const setEchartOption = (list:any[][]) => {
 // K线走势
 const getQQJYKX = async (period:string = '1min') => {
   const res = await $api.getQQJYKX(Store.data.recommendList[Store.data.recommendIndex].MJname,period);
-  myChart.showLoading();
   if(res && res.code == 200){
     let list:any = []
     res.list.forEach((item:any) => {
@@ -397,9 +414,13 @@ const onChangeList = async (_ev:any) => {
     item.width = 200 * ++index/10 * (Number(item.amount)/10)
   });
   TotalTrades.data = res.list;
-  Store.data.tabindex = 0;
   formData.data.Bid = Store.data.recommendList[Number(dataset['index'])].id;
+  // 重置属性
+  formData.data.amount = '';
+  Store.data.tabindex = 0;
+  Store.data.comboIndex = 0;
   getQQJYKX('1min');
+  $store.commit('setUseLoading',true);
 }
 
 // 获取产品列表
@@ -453,27 +474,27 @@ onMounted(()=>{
     TotalTrades.data = res[1].list;
     Store.data.options_trading = res[3].data1;
     loading.value = true;
-    setTimeout(()=>{setEchartOption(list)},200);
+    setTimeout(()=>{setEchartOption(list)},500);
+      // 买卖数据轮询
+      time = setInterval(() => {
+      setTimeout(async () => {
+        $store.commit('setUseLoading',false);
+        const res = await $api.getTotalTrades(Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].MJname:'eth_usdt');
+        if(res && res.code == '200'){
+          res.list.forEach((item:any,index:number)=>{
+            item.date = dayjs(item.date*1000).format("HH:mm:ss");
+            item.width = 200 * ++index/10 * (Number(item.amount)/10);
+          });
+          TotalTrades.data = res.list;
+        }
+      }, 200)
+    }, 5000)
+
+    
   })
   .catch((err)=>{
     console.log(err);
   })
-
-  // 买卖数据轮询
-  time = setInterval(() => {
-    setTimeout(async () => {
-      const res = await $api.getTotalTrades(Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].MJname:'eth_usdt');
-      if(res && res.code == '200'){
-        res.list.forEach((item:any,index:number)=>{
-          item.date = dayjs(item.date*1000).format("HH:mm:ss");
-          item.width = 200 * ++index/10 * (Number(item.amount)/10);
-        });
-        TotalTrades.data = res.list;
-        $store.commit('setUseLoading',false);
-      }
-    }, 200)
-  }, 5000)
-
 
 })
 
@@ -551,9 +572,7 @@ onUnmounted(()=>{
         <!-- 说明按钮 -->
         <div class="buy-tip" @click="Store.data.showTip = true"><van-icon name="warning" size="25" color="#F7931A" /></div>
         <div class="buy-content">
-          <!-- <div v-if="Store.data.useOrder"> -->
           <div>
-            <!-- QQJYoptions 没有的情况禁止使用此模块 -->
             <div v-show="!Store.data.showTip">
             <div class="buy-select">
               <div class="buy-name">
@@ -582,7 +601,8 @@ onUnmounted(()=>{
               <p class="buy-card-tit">價格範圍</p>
               <div class="buy-card-item">
                 <div class="buy-card-select low1" @click="showRangeCard = true">
-                  <p class="buy-card-flag" :class="{'Dsy':formData.data.ZD}"><van-icon :name="!formData.data.ZD?'plus':'minus'" :color="!formData.data.ZD?'#00C693':'red'" /> {{!formData.data.ZD?'涨':'跌'}} | >0.001%</p>
+                  <p class="buy-card-flag" :class="{'Dsy':formData.data.ZD}">
+                    <van-icon :name="!formData.data.ZD?'plus':'minus'" :color="!formData.data.ZD?'#00C693':'red'" /> {{!formData.data.ZD?'涨':'跌'}} | >0.001%</p>
                   <p class="buy-card-txt">(*{{!Store.data.comboActions.length?'xxx':Store.data.comboActions[Store.data.comboIndex].ratio}})</p>
                   <van-icon name="arrow-down" color="#333333" />
                 </div>
@@ -614,10 +634,6 @@ onUnmounted(()=>{
             <van-button type="primary" color="#3C5FE7" block @click="onSubmit">確認下單</van-button>
             </div>
           </div>
-<!-- 
-          <div v-else>
-            <van-empty v-show="!Store.data.showTip" description="Under Maintenance" />
-          </div> -->
 
           <div class="buytip-wrap" v-show="Store.data.showTip">
             <h2 class="buytip-title">{{Store.data.options_trading.title}}</h2>
@@ -630,27 +646,84 @@ onUnmounted(()=>{
 
       <van-action-sheet v-model:show="showTimeCard" :actions="Store.data.comboActions" @select="onSelect" close-on-click-action/>
       <!-- range -->
-      <van-action-sheet v-model:show="showRangeCard" @select="onSelectRange" close-on-click-action>
-        <!-- <div class="buy-Range-list">
+      <van-action-sheet v-model:show="showRangeCard" @select="showRangeCard = false" close-on-click-action>
+        <div class="buy-Range-list">
           <div class="buy-Range-item" @click="showRangeCard = false">
             <span class="buy-Range-flog" :class="{'Dsy':formData.data.ZD}">{{ !formData.data.ZD?'涨':'跌' }} |>0.001%。</span>
-            <span class="buy-Range-info">回报率 {{ comboActions[comboIndex].ratio }}</span>
+            <span class="buy-Range-info">回报率 {{ Store.data.comboActions[Store.data.comboIndex].ratio }}</span>
           </div>
-        </div> -->
+        </div>
       </van-action-sheet>
     </div>
 
     <van-overlay :show="Store.data.sildershow" @click="handlemouseClick" :lazy-render="false">
-          <div class="recommend-list">
-            <div class="title"><span>現貨行情</span></div>
-            <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
-              <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index"></div>
-              <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
-              <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
-              <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
+      <div class="recommend-list">
+        <div class="title"><span>現貨行情</span></div>
+        <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
+          <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index"></div>
+          <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
+          <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
+          <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
+        </div>
+      </div>
+    </van-overlay>
+
+    <van-overlay :show="Ordershow">
+      <div class="order-wrap">
+        <div class="order-layout">
+          <div class="order-head">
+            <span>订单信息</span>
+            <van-icon class="order-off" size="20" name="cross" @click="Ordershow = false" />
+          </div>
+          <div class="order-main">
+            <div class="order-countDown">
+              <van-count-down ref="countDown" :time="timeDown" format="DD:HH:ss" @finish="onFinish">
+                <template #default="timeData">
+                  <div class="time-box">
+                    <span class="block day">{{ timeData.days < 10? '0' + timeData.days : timeData.days }}</span>
+                    <span class="block hour">{{ timeData.hours < 10? '0' + timeData.hours : timeData.hours }}</span>
+                    <span class="block minute">{{ timeData.minutes < 10? '0' + timeData.minutes : timeData.minutes }}</span>
+                    <span class="block secound">{{ timeData.seconds < 10? '0' + timeData.seconds : timeData.seconds }}</span>
+                  </div>
+                </template>
+              </van-count-down>
+            </div>
+            
+            <div class="order-info">
+              <div class="order-item"><div class="left">方向</div><div class="right green">{{!formData.data.ZD?'涨':'跌'}}|>{{Store.data.comboActions[Store.data.comboIndex].ratio}}%</div></div>
+              <div class="order-item"><div class="left">金额</div><div class="right">{{formData.data.amount}} USDT</div></div>
+              <div class="order-item"><div class="left">執行價</div><div class="right">{{ KxStore.data.quotes.close }}</div></div>
+              <div class="order-item"><div class="left">盈利率</div><div class="right"></div></div>
+              <div class="order-item"><div class="left">盈利</div><div class="right">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="20px" height="26px" viewBox="0 0 24 30" xml:space="preserve">
+                  <rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                    <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="height" attributeType="XML" values="10; 20; 10" begin="0s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="y" attributeType="XML" values="10; 5; 10" begin="0s" dur="0.6s" repeatCount="indefinite"></animate>
+                  </rect>
+                  <rect  x="8" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                    <animate  attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.15s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.15s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.15s" dur="0.6s" repeatCount="indefinite"></animate>
+                  </rect>
+                  <rect  x="16" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                    <animate  attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.3s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.3s" dur="0.6s" repeatCount="indefinite"></animate>
+                    <animate  attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.3s" dur="0.6s" repeatCount="indefinite"></animate>
+                  </rect>
+                </svg>
+              </div>
+            </div>
+
             </div>
           </div>
-      </van-overlay>
+          <div class="order-foot">
+            <div class="buttom checkOrder" @click="$router.push('/options/trade')">查看订单</div>
+            <div class="buttom continue" @click="handleContinue">继续下单</div>
+          </div>
+        </div>
+      </div>
+    </van-overlay>
   </div>
 </template>
 
@@ -683,90 +756,90 @@ onUnmounted(()=>{
   height: 400px;
 }
 
-  .recommend-list{
-    background-color: #fff;
-    text-align: left;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 80%;
-    height: 100vh;
-    overflow: scroll;
-    background: #fff;
-    z-index: 9999;
-    .title{
-      font-size: 20px;
-      font-weight: 700;
-      color: #000;
-      margin: 30px 0;
-      padding: @paddHorizontal;
-    }
-    .recommend-item{
-      .flexMixin(space-between);
-      position: relative;
-      height: 45px;
-      padding: @paddHorizontal;
-      .mask{
+.recommend-list{
+  background-color: #fff;
+  text-align: left;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 80%;
+  height: 100vh;
+  overflow: scroll;
+  background: #fff;
+  z-index: 9999;
+  .title{
+    font-size: 20px;
+    font-weight: 700;
+    color: #000;
+    margin: 30px 0;
+    padding: @paddHorizontal;
+  }
+  .recommend-item{
+    .flexMixin(space-between);
+    position: relative;
+    height: 45px;
+    padding: @paddHorizontal;
+    .mask{
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
+      background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
+      background-size: 200%;
+      -webkit-animation: mask-anime 1s .4s ease both;
+      -moz-animation: mask-anime 1s .4s ease both;
+      animation: mask-anime 1s .4s ease both;
+      &::after{
+        content: '';
+        height: 1px;
+        width: 100%;
         position: absolute;
         left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
+        bottom: 0;
         background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
         background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
         background-size: 200%;
-        -webkit-animation: mask-anime 1s .4s ease both;
-        -moz-animation: mask-anime 1s .4s ease both;
-        animation: mask-anime 1s .4s ease both;
-        &::after{
-          content: '';
-          height: 1px;
-          width: 100%;
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
-          background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
-          background-size: 200%;
-        }
-      }
-      .mask.red{
-        background: -webkit-linear-gradient(left,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
-        background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
-      }
-      .name{
-        color: #3b3e4e;
-        width: 90px;
-        .subname{
-          font-size: 12px;
-          color: #ccc;
-          letter-spacing: 0;
-        }
-      }
-      .close{
-        color: @greenColor;
-        font-size: 17px;
-        .multiEllipsis(1);
-        flex-basis: 35%;
-      }
-      .close.red{
-        color: @redColor;
-      }
-      .riseRate{
-        width: 70px;
-        height: 27px;
-        line-height: 30px;
-        text-align: center;
-        font-size: 13px;
-        border-radius: 4px;
-        color: #fff;
-        background: @greenColor;
-      }
-      .riseRate.red{
-        background-color: @redColor;
       }
     }
+    .mask.red{
+      background: -webkit-linear-gradient(left,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
+      background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
+    }
+    .name{
+      color: #3b3e4e;
+      width: 90px;
+      .subname{
+        font-size: 12px;
+        color: #ccc;
+        letter-spacing: 0;
+      }
+    }
+    .close{
+      color: @greenColor;
+      font-size: 17px;
+      .multiEllipsis(1);
+      flex-basis: 35%;
+    }
+    .close.red{
+      color: @redColor;
+    }
+    .riseRate{
+      width: 70px;
+      height: 27px;
+      line-height: 30px;
+      text-align: center;
+      font-size: 13px;
+      border-radius: 4px;
+      color: #fff;
+      background: @greenColor;
+    }
+    .riseRate.red{
+      background-color: @redColor;
+    }
   }
+}
 
 
 .page-main{
@@ -1004,9 +1077,8 @@ onUnmounted(()=>{
     
       .price-left{
         flex-basis: 30%;
-        justify-content: flex-start;
+        justify-content: center;
         gap: 5px;
-        // font-weight: bold;
       }
       .price-right{
         flex-basis: 65%;
@@ -1063,6 +1135,102 @@ onUnmounted(()=>{
     }
     .buy-Range-flog.Dsy{
       color: rgb(245, 95, 92);
+    }
+  }
+}
+
+.order-wrap{
+  .flexMixin(center);
+  height: 100%;
+  padding: 0 30px;
+  .order-layout{
+    background-color: #fff;
+    border-radius: 15px;
+    height: 370px;
+    width: 100%;
+    .order-head{
+      position: relative;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #3c3220;
+      border-bottom: 1px solid #f0f0f0;
+      .order-off{
+        position: absolute;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+      }
+    }
+    .order-main{
+      padding: 0 35px;
+      .order-countDown{
+        margin: 20px 0;
+        .time-box{
+          .flexMixin(center);
+          gap: 7px;
+          .block{
+            height: 50px;
+            border-radius: 7px;
+            width: 45px;
+            text-align: center;
+            line-height: 50px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 5px;
+          }
+          .day{background-color: #FA6142;}
+          .hour{background-color: #00C693;}
+          .minute{background-color: #F7BC58;}
+          .secound{background-color: #6C96E8;}
+        }
+      }
+      .order-info{
+        .order-item{
+          .flexMixin(space-between);
+          line-height: 30px;
+          .left{
+            color: #999ba9;
+            flex-basis: 50%;
+          }
+          .right{
+            text-align: right;
+            flex-basis: 50%;
+            color: #3b3e4e;
+            font-weight: 700;
+        }
+          .right.green{
+            color: #009f49;
+          }
+        }
+      }
+    }
+    .order-foot{
+      .flexMixin(space-between);
+      margin-top: 15px;
+      padding: 0 20px;
+      text-align: center;
+      .buttom{
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        width: 120px;
+        height: 40px;
+        line-height: 40px;
+      }
+      .checkOrder{
+        color: #4d4d4d;
+      }
+      .continue{
+        background: -webkit-linear-gradient(359.84deg,#00c693 .14%,#00c693 102.99%);
+        background: linear-gradient(90.16deg,#00c693 .14%,#00c693 102.99%);
+        color: #fff;
+      }
     }
   }
 }

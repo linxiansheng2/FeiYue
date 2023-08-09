@@ -77,4 +77,11 @@ export default {
 			pageNum,pageSize
 		})
 	},
+	//交换余额记录 
+	getUserTransferlist(pageNum:number = 1,pageSize:number = 2){
+		return instance.post('api/clien/usermoneyOrderlist.php/swap',{
+			pageNum,pageSize
+		})
+	},
+
 }

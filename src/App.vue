@@ -2,7 +2,7 @@
 
   <Loading v-show="loading"/>
   <router-view/>
-  <van-floating-bubble  axis="xy" @click="onClick">
+  <van-floating-bubble  axis="xy" @click="$router.go(0)">
     <img class="loading-img" src="./assets/silder/loading.png"/>
   </van-floating-bubble>
 </template>
@@ -12,11 +12,6 @@
   import $api from '@/https'
   const $store = useStore();
   const loading = computed(()=>$store.state.loading);
-
-  // 重新加载页面
-  const onClick = () => {
-      window.location.reload();
-  };
 
   // 获取网站配置
   const getConfig = async () => {

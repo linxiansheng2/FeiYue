@@ -81,6 +81,14 @@ export default {
         // {text:'Nederlands',value:'nl',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAAAX0lEQVQ4jWNcJ6Pxn4GGgImWhjPQwwKW///+YQhS1YKvzx5hCFITMD5Yvoamkcz4////0VSEFwyDfLD5wA0MQWoCRmbdapqmIhZpcX4MQapawMzEiCFITTDEUxEDAwMAFf8TPIcVfqoAAAAASUVORK5CYII='},
     ]
 
+    const handleReCache = () => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+        router.push('/');
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }
     const onSelectLanguage = (ev:any) =>{
         location.reload();
         let lang = ev.target.dataset.value;
@@ -149,7 +157,7 @@ export default {
                 </van-collapse>
                 <!-- end -->
                 <div class="sun-menu-footer">
-                    <div class="removeCookie">{{$t('silder.clearcache')}}</div>
+                    <div class="removeCookie" @click="handleReCache">{{$t('silder.clearcache')}}</div>
 
                     <!-- language -->
                     <div class="languagebox" @click="langShow = !langShow">
@@ -209,6 +217,7 @@ export default {
             height: 37px;
             -webkit-animation: scalelogo 1.5s 0s ease both infinite;
             -moz-animation: scalelogo 1.5s 0s ease both infinite;
+            animation:scalelogo 1.5s 0s ease both infinite;
         }
     }
     .nav-right{
@@ -293,10 +302,11 @@ export default {
                         font-size: var(--van-cell-font-size);
                         line-height: var(--van-cell-line-height);
                         background: var(--van-cell-background);
-                        
+                        text-transform: capitalize;
                     }
                     .sub-menu-item.items{
                         padding: 0;
+
                         a{
                             font-weight: normal;
                             font-size: 14px;

@@ -10,13 +10,12 @@ import { useStore } from 'vuex'
 const $store = useStore();
 
 const Store:any = reactive({data:{
-    active:true,
     state:3,            //3=持仓中 4=已完成
-    loading:false,      //是否处于加载状态
-    finished:false,     //是否已加载完成，加载完成后不再触发 load 事件
     pageNum:1,          //当前页数
     pageSize:10,        //单页最大值
-    list:[],            //订单列表
+    total:10,           //总数据
+    count:1,            //总页数
+    orderList:[],       //订单列表
 }})
 
 /**
@@ -24,36 +23,26 @@ const Store:any = reactive({data:{
  * @param val 启用tab
  * @param state 3=持仓中 4=已完成
  */
-const onChange = (val:boolean,state:number) => {
+const onChange = (state:number) => {
     Store.data.state = state;
-    Store.data.active = val;
     Store.data.pageNum = 1;
-    Store.data.list = []
-    Store.data.finished = false;
-    Store.data.loading = true;
-    onLoad();
+    Store.data.orderList = [];
+    onChangePage(1);
 }
 
-
-const onLoad = async () => {
-    let res = await $api.getQQJYOrderList(Store.data.state,Store.data.pageNum,Store.data.pageSize);
-    if(res && res['code'] == 200){
-        Store.data.list.push(...res.rows);
-        // 加载状态结束
-        Store.data.loading = false;
-        if(res.rows.length < res.total || !res.rows.length){
-            // 数据全部加载完成
-            Store.data.finished = true;
-        }else{
-            Store.data.pageNum+=1;
-        }
-    }
-    $store.commit('setUseLoading',false);
+const onChangePage = async (_ev:any) => {
+  const res = await $api.getQQJYOrderList(Store.data.state,_ev,Store.data.pageSize)
+  if(res && res['code'] == 200){
+    Store.data.count = parseInt(String((res['total'] + Store.data.pageSize -1 ) / Store.data.pageSize)) ;
+    Store.data.orderList = res['rows'];
+    Store.data.total = res['total'];
+    console.log(res);
+    
+  }
 }
 
-// 组件销毁时启用全局加载
-onUnmounted(()=>{
-  $store.commit('setUseLoading',true);
+onMounted(()=>{
+  onChangePage(1);
 })
 
 </script>
@@ -61,46 +50,50 @@ onUnmounted(()=>{
 <template>
   <div class="page-main">
     <div class="trade-tab" >
-      <div class="trade-item" :class="{'active':Store.data.active}" @click="()=>{onChange(true,3)}">Holding detail</div>
-      <div class="trade-item" :class="{'active':!Store.data.active}" @click="()=>{onChange(false,4)}">History detail</div>
+      <div class="trade-item" :class="{'active':Store.data.state == 3}" @click="()=>{onChange(3)}">持仓中</div>
+      <div class="trade-item" :class="{'active':Store.data.state == 4}" @click="()=>{onChange(4)}">已完成</div>
     </div>
-    <Cus-Card marginTop="30">
-      <div class="trade-list">
-        <van-empty image-size="10rem" description="No record" />
+    <Cus-Card marginTop="15" padding="15">
+      <div class="order-list" v-if="Store.data.orderList.length">
+        <div class="order-item" v-for="item in Store.data.orderList" :key="item.id">
+          <div class="order-info"><p class="head">{{String(item.MJname).replace('_','/')}}<p class="bullish" :class="{
+            // 'bullish':item.order_type?false:true,
+            // 'bullimd':item.order_type?true:false,
+            }">{{ item.order_type?'买跌':'买涨' }}</p></p><span class="bullitit">{{item.State == 1 ?'已结算':'持仓中'}}</span></div>
+          <van-divider />
+          <div class="order-info"><span>開倉時間</span><span>{{item.time1}}</span></div>
+          <div class="order-info"><span>開倉價格</span><span>{{item.Bhuil}}</span></div>
+          <div class="order-info"><span>買入金額</span><span>{{ item.money }}</span></div>
+          <div class="order-info"><span>時間</span><span>{{ item.time_name }}</span></div>
+          <div class="order-info"><span>盈利率</span><span>{{ item.ratio }}%</span></div>
+          <div class="order-info"  v-if="Store.data.state == 4"><span>關倉價格</span><span>{{ item.Bhuil_end }}</span></div>
+          <div class="order-info"><span>關倉時間</span><span>{{ item.time2 }}</span></div>
+          <div class="order-info" v-if="Store.data.state == 4"><span>盈利</span><span>{{ item.money_SY }}</span></div>
+          <div class="order-info"><span>手续费</span><span>{{ item.handlingfee }}%</span></div>
+          <!-- <div class="order-details" v-if="Store.data.state == 3"><p class="details_btn">查看详情</p></div> -->
+        </div>
+        <van-pagination v-show="Store.data.total>Store.data.orderList.length" v-model="Store.data.pageNum" :page-count="Store.data.count" mode="simple" @change="onChangePage" >
+          <template #prev-text><van-icon name="arrow-left" /></template>
+          <template #next-text><van-icon name="arrow" /></template>
+        </van-pagination>
       </div>
-    </Cus-Card>
-
-        <Cus-Card padding="15">
-        <van-list
-            v-model:loading="Store.data.loading"
-            :finished="Store.data.finished"
-            finished-text="没有更多了"
-            @load="onLoad"
-            >
-            <div class="order-list">
-                <div class="order-item" v-for="(item,index) in Store.data.list" :key="item.id">
-                    <div class="left">
-                        <div class="title">{{`${Store.data.changeValue?'充值':'提现'}金额:${item.money}`}}</div>
-                        <div class="time">{{ item.create_time }}</div>
-                    </div>
-                    <div class="right">
-                        <div class="title">状态</div>
-                        <div class="state" 
-                        :class="{
-                        'wsh':item.State == 0,
-                        'on':item.State == 1,
-                        'off':item.State == 2,
-                        }"
-                        >{{ item.State?(item.State == 1 ? 'Approve' :'Refuse'):'Unaudited'}}</div>
-                    </div>
-                </div>
-            </div>
-        </van-list>
+      <van-empty v-else image-size="10rem" description="No record" />
     </Cus-Card>
   </div>
 </template>
 
 <style scoped lang="less">
+.flexMixin(@justify){
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: @justify;
+    justify-content: @justify;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+}
 .page-main{
   padding-top: 20px;
 }
@@ -127,4 +120,51 @@ onUnmounted(()=>{
     background: #2850E7;
   }
 }
+
+.order-list{
+      .order-item{
+        padding: 5px 0;
+        .order-info{
+          font-size: 13px;
+          line-height: 30px;
+          .flexMixin(space-between);
+          .head{
+            font-size: 18px;
+            color: #010101;
+            text-transform: uppercase;
+            .bullish{
+              background: #00c693;
+              color: #fff;
+              border-radius: 8px 24px 8px 8px;
+              font-size: 11px;
+              padding: 2px 6px 1px 2px;
+              margin-left: 10px;
+              display: inline;
+            }
+          }
+          .bullitit{
+            color: #00c693;
+            font-size: 16px;
+          }
+        }
+        .order-details{
+          text-align: center;
+          .details_btn{
+            border-radius: 5px;
+            border: 1px solid #d7d7d7;
+            width: auto;
+            display: inline-block;
+            padding: 5px 25px;
+            cursor: pointer;
+          }
+        }
+        .order-info>span{
+          flex-basis: 50%;
+        }
+        .order-info>span:last-child{
+          text-align: right;
+          font-size: 14px;
+        }
+      }
+    }
 </style>

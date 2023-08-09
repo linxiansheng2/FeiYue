@@ -17,7 +17,6 @@ const Store:any = reactive({data:{
     showChange:true,    //
     pageNum:1,          //当前页数
     pageSize:10,        //单页最大值
-    total:0,            //总数
     list:[],            //充提记录
 }})
 
@@ -33,23 +32,25 @@ const onChange = (val:boolean) => {
 
 
 const onLoad = async () => {
-    let res:any;
+    let res:any,total:any;
     if(Store.data.changeValue){
         res = await $api.getUserRechargelist(Store.data.pageNum,Store.data.pageSize);
     }else{
         res = await $api.getUserWithdrawlist(Store.data.pageNum,Store.data.pageSize);
     }
     if(res && res['code'] == 200){
-        Store.data.total = res.total;
         Store.data.list.push(...res.rows);
         // 加载状态结束
         Store.data.loading = false;
-        if(res.rows.length < res.total || !res.rows.length){
+        total = parseInt(String((res['total'] + Store.data.pageSize -1 ) / Store.data.pageSize));
+        if(Store.data.pageNum == total){
             // 数据全部加载完成
             Store.data.finished = true;
         }else{
             Store.data.pageNum+=1;
         }
+
+        console.log(res,total);
         
     }
     $store.commit('setUseLoading',false);
@@ -110,21 +111,17 @@ onUnmounted(()=>{
             @load="onLoad"
             >
             <div class="order-list">
-                <div class="order-item" v-for="(item,index) in Store.data.list" :key="item.id">
-                    <div class="left">
-                        <div class="title">{{`${Store.data.changeValue?'充值':'提现'}金额:${item.money}`}}</div>
-                        <div class="time">{{ item.create_time }}</div>
-                    </div>
-                    <div class="right">
-                        <div class="title">状态</div>
-                        <div class="state" 
+                <!-- {{ item.State?(item.State == 1 ? 'Approve' :'Refuse'):'Unaudited'}} -->
+                <div class="order-item" v-for="item in Store.data.list" :key="item.id">
+                    <div class="order-info"><span>{{`${Store.data.changeValue?'充值':'提现'}金额`}}</span><span>{{ item.money }}</span></div>
+                    <div class="order-info"><span>到账金额</span><span>{{ item.SJmoney }}</span></div>
+                    <div class="order-info"><span>状态</span><span class="state" 
                         :class="{
                         'wsh':item.State == 0,
                         'on':item.State == 1,
                         'off':item.State == 2,
-                        }"
-                        >{{ item.State?(item.State == 1 ? 'Approve' :'Refuse'):'Unaudited'}}</div>
-                    </div>
+                        }">{{ item.State?(item.State == 1 ? '通过' :'拒绝'):'未审核'}}</span></div>
+                    <div class="order-info"><span>时间</span><span>{{ item.create_time }}</span></div>
                 </div>
             </div>
         </van-list>
@@ -227,28 +224,20 @@ onUnmounted(()=>{
     }
 }
 .order-list{
-    .order-item{
-        .flexMixin(space-between);
-        border-bottom: 1px solid #ededed;
-        line-height: 25px;
-        .left{
+      font-size: 12px;
+      line-height: 24px;
+      .order-item{
+        border-top: 1px solid #e9e9e9;
+        padding: 5px 0;
+        .order-info{
+          .flexMixin(flex-start);
+          span{
+            flex-basis: 40%;
+          }
+          .state.wsh{color: #a7a7a7;}
+          .state.on{color: #00c693;}
+          .state.off{color: red;}
         }
-        .right{
-            text-align: right;
-            .wsh{
-                color: #a7a7a7;
-            }
-            .on{
-                color: #00c693;
-            }
-            .off{
-                color: red;
-            }
-        }
-        .title{
-            font-weight: bold;
-            font-size: 15px;
-        }
+      }
     }
-}
 </style>

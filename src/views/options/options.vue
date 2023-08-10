@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted ,onUnmounted ,getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted ,onUnmounted ,getCurrentInstance ,toRef} from 'vue'
 import * as echarts from 'echarts'
 import $api  from '@/https'
 import dayjs from "dayjs"
@@ -13,38 +13,26 @@ import {useStore} from 'vuex'
 import router from '@/router'
 const $store = useStore();
 type EChartsOption = echarts.EChartsOption;
-
-const loading = ref<boolean>(false);
-
 const Store:any = reactive({data:{
   sildershow:false,     //显示币种动态列表窗口
   show:false,           //显示主面板
   showTip:false,        //显示说明,
-  useOrder:true,        //允许下单
   tabindex:0,           //Tab 索引
   timelist:['1Min','30Min','60Min','1Day','1Week','1Mon'],
-  upColor:'#24AA71',    //K线收益颜色
-  downColor:'#E65D44',  //K线收益颜色
   options_trading:{},   //期权交易玩法
-  recommendIndex:0,     //产品索引
+  proIndex:0,     //产品索引
   recommendList:[],     //列表产品
   comboInfo:'',         //下单选项文字
   comboActions:[],      //下单选项属性
-  placeholder:'',       //下单金额限制
   comboIndex:0,         //下单选项索引
+  placeholder:'',       //下单金额限制
   ratio:'0.00',         //下单收益率
 }})
 
 // 倒计时
 const countDown = ref<any>(null);
 const timeDown = ref<number>(1000);
-// 倒计时结束
-const onFinish = () => {
-  timeDown.value = 1000;
-  Ordershow.value = false;
-};
-// 订单信息
-const Ordershow = ref<boolean>(false);
+
 // 下单数据
 const formData:any = reactive({data:{
   comboInfoId:0,
@@ -53,335 +41,419 @@ const formData:any = reactive({data:{
   ZD:0
 }})
 
-// K线走势数据
-const KxStore = reactive<any>({data:{
-  list:[],
-  quotes:{}
-}})
 // 买卖数据
-const TotalTrades = reactive<any>({data:{}});
+const TotalTrades = reactive<any>({data:[]});
 const showTimeCard = ref(false);
 const showRangeCard = ref(false);
 
-var time:any = null;
-
-// 下单重置
-const formDataClone = {...formData.data}
-
-/**
- * 选择时间
- * @param action 当前选项所有属性
- * @param index 选项索引
- */
-const onSelect = (action: any, index: number) => {
-    showTimeCard.value = false;
-    Store.data.comboInfo = action.name;
-    Store.data.placeholder = action.maxmoney;
-    Store.data.comboIndex = index;
-    onUpdatemount(formData.data.amount);
-};
-
-/**
- * 
- * @param value 下单价格
- */
-const onUpdatemount = (value: string) => {
-  if(!Store.data.comboActions.length) return;
-  Store.data.ratio = (Number(value) * Store.data.comboActions[Store.data.comboIndex].ratio).toFixed(2);
-}
-
-// 立即下单
-const onSubmit = async () => {
-  if(!formData.data.amount){
-    showToast('请输入金额');return;
-  }else if(formData.data.amount < Store.data.comboActions[Store.data.comboIndex].minmoney){
-    showToast('金额太小'); return;
-  }else{
-    formData.data.comboInfoId = Store.data.comboActions[Store.data.comboIndex].id;
-    const res = await $api.getSubmitOrder(formData.data);
-    if(res && res['code'] == 200 ){
-      timeDown.value = Store.data.comboActions[Store.data.comboIndex].duration_m* 1000;
-      formData.data = formDataClone;
-      Store.data.show = false;
-      Ordershow.value = true;
-    }else{
-      showToast(res['msg'])
-    }
-  }
-}
-
-// 继续下单
-const handleContinue = () => {
-  Ordershow.value = false;
-  formData.data.amount = '';
-  timeDown.value = 1000;
-}
-
-// Echarts 标题样式
-const textStyle:any = {
-  color:'#666',
-  fontStyle:'normal',
-  fontWeight:'normal',
-  fontFamily:'sans-serif',
-  fontSize:12
-}
-
-// 切换K线时间
+// K线时间切换
 const onChangeTime = (_ev:any) => {
   const index = _ev.target.dataset['index'];
-  if(index){
-    Store.data.tabindex = index*1;
-  }
-  getQQJYKX(Store.data.timelist[Number(index)]);
+  Store.data.tabindex = Number(index);
+  splitData(Store.data.recommendList[Store.data.proIndex]['MJname'],Store.data.timelist[Number(index)]);
+  settitle.value = false;
 }
 
-// 格式化K线数据
-const splitData = (rawData: number[][]) => {
-  let values = [];
-  let volumes = [];
-  let categoryData = [];
-  for (let i = 0; i < rawData.length; i++) {
-    // categoryData.unshift(dayjs.unix(rawData[i][5]).format('HH:mm'))
-    categoryData.unshift(dayjs.unix(rawData[i].splice(5, 1)[0]).format('HH:mm'));
-    values.push(rawData[i]);
-    volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
+// k线数据
+var option: EChartsOption;
+var myChart:any;
+var time:any = null;
+const MA5 = ref<any>('');
+const MA10 = ref<any>('');
+const MA20 = ref<any>('');
+const volMA5 = ref<any>('');
+const volMA10 = ref<any>('');
+const rawData = ref<any[]>([]);
+const dates = ref<any>([]);
+const echartsData = ref<any>([]);
+const volumes = ref<any>([]);
+const QQQuotes = ref<any>('');
+const settitle = ref<boolean>(false);
+var upColor = '#E65D44';
+var downColor = '#24AA71';
+
+// 重置数据
+const resetData = () => {
+  MA5.value = '';
+  MA10.value = '';
+  MA20.value = '';
+  volMA5.value = '';
+  volMA10.value = '';
+}
+/**
+ * 
+ * @param list 后端K线数据
+ */
+const splitData = async (symbol:string = 'eth_usdt',period:string = '1min') => {
+  const res = await $api.getQQJYKX(symbol,period);
+  if(res && res['code'] == 200){
+    res['list'].reverse();
+    let setlist = res['list'].map((item:any)=>Object.values(item).map(Number));
+    rawData.value = setlist;
+    QQQuotes.value = res.quotes;
+
+    // 格式化Echarts
+    dates.value = setlist.map((item:any) => {
+      return dayjs.unix(item[5]).format('HH:mm');
+    });
+    echartsData.value = setlist.map((item:any) =>[+item[0], +item[1], +item[2], +item[3], +item[4]]);
+    volumes.value = setlist.map((item:any, index:number) =>[index, item[4], item[0] > item[1] ? 1 : -1]);
+    resetData();
+    draw();
   }
-  return {
-    categoryData,
-    values,
-    volumes
-  };
 }
 
-const calculateMA = (dayCount: number, data: { values: number[][] }) => {
+// 截取数字字符串 保留precision小数
+const formatterNum = (value:any, precision:any) => {
+  let reg = new RegExp('^\\d+(?:\\.\\d{0,' + precision + '})?')
+  return value.toString().match(reg)
+}
+
+// 计算MA
+const calculateMA = (dayCount:number, data:any[]) => {
   var result = [];
-  for (var i = 0, len = data.values.length; i < len; i++) {
+  for (var i = 0, len = data.length; i < len; i++) {
     if (i < dayCount) {
-      result.push('-');
+      result.unshift('-');
       continue;
     }
     var sum = 0;
     for (var j = 0; j < dayCount; j++) {
-      sum += data.values[i - j][1];
+      sum += data[i - j][1];
     }
-    result.push(+(sum / dayCount).toFixed(3));
+    result.unshift((sum / dayCount).toFixed(2));
   }
   return result;
 }
 
-// 曲线颜色
-const ncolorList = ['#FFBD09','#16C6FF','#AE23A1']; 
-var chartDom:any,myChart:any;
-var option: EChartsOption;
-
-const setEchartOption = (list:any[][]) => {
-  // 如果存在Echart，则不进行初始化
-  if(!myChart || !chartDom){
-    chartDom = document.getElementById('echartsBox');
-    myChart = echarts.init(chartDom);
+var styleline = 'display: flex;flex-direction: row;align-items: center;justify-content: space-between;gap:20px'
+// 绘制(配置项)
+const draw = () =>{
+  if(!myChart){
+    myChart = echarts.init(document.getElementById('echartsBox'));
   }
-  
-  let data = splitData(list);
-  // console.log(data);
-  
-  const dataMA5 = calculateMA(5, data);
-  const dataMA10 = calculateMA(10, data);
-  const dataMA20 = calculateMA(20, data);
   option = {
+    backgroundColor: '#fff',
     title: [
-      {
-        left: 'left',
-        text: 'MA(5,10,20)',
-        textStyle
-      },
-      {
-        top: '65%',
-        left: 'left',
-        text: 'VOL',
-        textStyle 
-      }
-    ],
-    animation: false,
-    color: ncolorList,
-    axisPointer: {
-      link: [
-        {
-          xAxisIndex: [0, 1]
-        }
-      ]
-    },
-    tooltip: {                              // 全局提示窗样式设置
-      confine: true,
-      show:true,
-      trigger: 'axis',
-      axisPointer: { type: 'cross' },
-      showContent: true,
-    },
-    dataZoom: [
-      {
-        type: 'inside',
-        xAxisIndex: [0, 1],
-        start: 70,
-        end: 100,
-      }
-    ],
-    xAxis: [
-      {
-        type: 'category',
-        boundaryGap: false,
-        axisLine: { show: false },
-        axisLabel: { show: false},
-        axisTick: { show:false },
-        data:data.categoryData,
-      },
-      {
-        type: 'category',
-        gridIndex: 1,
-        data:data.categoryData,
-        boundaryGap: false,
-        axisLine: { show: false },//轴线
-        axisLabel: { show: true}, // 轴刻度
-        axisTick: { show:false },
-        // min: 'dataMin',
-        // max: 'dataMax',
-      }
-    ],
-    yAxis: [
-      {
-        scale: true,
-        splitNumber:4,
-        min:'dataMin',
-        max: 'dataMax', 
-        axisLine: { show:false},
-        splitLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: {
-          formatter: '{value}\n',
-          show:true,
-        },
-        position: 'right'
-      },
-      {
-        scale: true,
-        gridIndex: 1,
-        splitNumber: 2,
-        axisLabel: { show: false },
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: { show: false },
-        min:'dataMin',  
-        max: 'dataMax', 
-      }
+      {left: 'left',text: 'MA(5,10,20)',textStyle:{color:'#666',fontStyle:'normal',fontWeight:'normal',fontFamily:'sans-serif',fontSize:12,}},
+      {top: '75%',left: 'left',text: 'VOL(5,10)',textStyle:{color:'#666',fontStyle:'normal',fontWeight:'normal',fontFamily:'sans-serif',fontSize:12,}},
     ],
     visualMap: {
       show: false,
       seriesIndex: 4,
       dimension: 2,
-      pieces: [
-        {
+      pieces: [{
           value: 1,
-          color: Store.data.downColor
-        },
-        {
+          color: upColor
+      }, {
           value: -1,
-          color: Store.data.upColor
-        }
-      ]
+          color: downColor
+      }]
     },
-    grid: [
-        {
-          left: '5%',
-          right: '15%',
-          height: 200
-        },
-        {
-          left: '5%',
-          right: '15%',
-          top: '63%',
-          height: 100
+    grid: [{
+        top: '5%',
+        left: 20,
+        right: '15%',
+        height: '65%'
+      },
+      {
+        top: '75%',
+        left: 20,
+        right: '15%',
+        height: '20%'
+      },
+    ],
+    axisPointer: { //坐标轴指示器配置项
+      link: [{xAxisIndex: [0,1]}],
+      // label: {
+      //   backgroundColor: '#ff0000',
+      //   color: '#fff',
+      //   borderColor: 'rgb(99, 117, 139)',
+      //   borderWidth: 1,
+      //   borderRadius: 2,
+      //   fontSize: 10
+      // }
+    },
+    xAxis: [{
+      type: 'category', //坐标轴类型。(value:数值轴，适用于连续数据。,category:类目轴，适用于离散的类目数据,time: 时间轴，适用于连续的时序数据,log:对数轴。适用于对数数据)
+      data: dates.value, //类目数据，在类目轴（type: 'category'）中有效。
+      // scale: true,
+      boundaryGap: false, //坐标轴两边留白策略，类目轴和非类目轴的设置和表现不一样。
+      axisLine: {
+        show: false
+      }, //坐标轴轴线相关设置
+      axisTick: {
+        show: false
+      }, //坐标轴刻度相关设置。
+      axisLabel: {
+        show: false,
+      }, //坐标轴刻度标签的相关设置。
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: 'rgba(255,255,255, 0.1)'
         }
-      ],
+      }, //坐标轴在 grid 区域中的分隔线。
+      min: 'dataMin', //坐标轴刻度最小值。可以设置成特殊值 'dataMin'，此时取数据在该轴上的最小值作为最小刻度。
+      max: 'dataMax', //坐标轴刻度最大值。可以设置成特殊值 'dataMax'，此时取数据在该轴上的最大值作为最大刻度。
+      axisPointer: {
+        label: {
+          margin: 200
+        }
+      },
+    }, {
+      type: 'category',
+      gridIndex: 1, //x 轴所在的 grid 的索引，默认位于第一个 grid。
+      data: dates.value, //类目数据，在类目轴（type: 'category'）中有效。
+      // scale: true,
+      boundaryGap: false, //坐标轴两边留白策略，类目轴和非类目轴的设置和表现不一样。
+      axisLine: {
+        show: false,
+      }, //坐标轴轴线相关设置
+      axisTick: {
+        show: false
+      }, //坐标轴刻度相关设置。
+      axisLabel: { //坐标轴刻度标签的相关设置。
+        show: true,
+        // margin: 6,
+        fontSize: 10,
+        color: 'rgba(99, 117, 139, 1.0)',
+      },
+      // splitNumber: 20,
+      splitLine: {
+        show: false,
+      }, //坐标轴在 grid 区域中的分隔线。
+      min: 'dataMin', //坐标轴刻度最小值。可以设置成特殊值 'dataMin'，此时取数据在该轴上的最小值作为最小刻度。
+      max: 'dataMax', //坐标轴刻度最大值。可以设置成特殊值 'dataMax'，此时取数据在该轴上的最大值作为最大刻度。
+    }],
+    yAxis: [{
+      type: 'value', //坐标轴类型。(value:数值轴，适用于连续数据。,category:类目轴，适用于离散的类目数据,time: 时间轴，适用于连续的时序数据,log:对数轴。适用于对数数据)
+      position: 'right', //y 轴的位置。'left','right'
+      scale: true, //是否是脱离 0 值比例。设置成 true 后坐标刻度不会强制包含零刻度。在双数值轴的散点图中比较有用。(在设置 min 和 max 之后该配置项无效。)
+      axisLine: {
+        show: false
+      }, //坐标轴轴线相关设置。
+      axisTick: {
+        show: false,
+        inside:true
+      }, //坐标轴刻度相关设置。
+      axisLabel: { //坐标轴刻度标签的相关设置。
+        show: true,
+        color: 'rgba(99, 117, 139, 1.0)',
+        inside: false,
+        fontSize: 10,
+        formatter: function(value:string|number) {
+          return Number(value).toFixed(2)
+        }
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: 'rgba(255,255,255, 0.1)'
+        }
+      }, //坐标轴在 grid 区域中的分隔线。
+    }, {
+      type: 'value',
+      position: 'right',
+      scale: true,
+      gridIndex: 1,
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        show: false
+      },
+      splitLine: {
+        show: false
+      }
+    }],
+    animation: false,
+    color: ['#FFBD09','#16C6FF','#AE23A1'],
+    tooltip: {
+      trigger: 'axis',
+      triggerOn: 'mousemove|click', //提示框触发的条件 'mousemove','click','mousemove|click','none'
+      formatter:(params:any)=>{
+        let tooltip:any = '';
+        let time = '', open = 0, high = 0, low = 0, close = 0, amount = 0;
+        for (var i = 0; i < params.length; i++) {
+          if (params[i].seriesName === '日K') {
+            time = params[i].name;
+            open = params[i].data.length > 1 ? Number(formatterNum(params[i].data[1], 2)) : 0;
+            close = params[i].data.length > 1 ? Number(formatterNum(params[i].data[2], 2)) : 0;
+            low = params[i].data.length > 1 ? Number(formatterNum(params[i].data[3], 2)) : 0;
+            high = params[i].data.length > 1 ? Number(formatterNum(params[i].data[4], 2)) : 0;
+            amount = params[i].data.length > 1 ? Number(formatterNum(params[i].data[5], 2)) : 0;
+            // console.log(time,open,close,low,high,amount)
+            tooltip = '<div class="charts-tooltip" style="width:auto;">' +
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Time' + '</div><div class="ctr-value">' + time + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Open' + '</div><div class="ctr-value">' + open + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'High' + '</div><div class="ctr-value">' + high + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Low' + '</div><div class="ctr-value">' + low + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Close' + '</div><div class="ctr-value">' + close + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Amount' + '</div><div class="ctr-value">' +amount + '</div></div></div>';
+          }
+          if (params[i].seriesName === 'MA5') {
+            MA5.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
+          }
+          if (params[i].seriesName === 'MA10') {
+            MA10.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
+          }
+          if (params[i].seriesName === 'MA20') {
+            MA20.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
+          }
+          if (params[i].seriesName === 'VolumeMA5') {
+            volMA5.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
+          }
+          if (params[i].seriesName === 'VolumeMA10') {
+            volMA10.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
+          }
+          
+        }
+        return tooltip;
+      },
+      show:true,
+      confine: true,
+      showContent: true,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      padding: 10,
+      textStyle: {
+        color: '#000'
+      },
+      position: function (pos, params, el, elRect, size) {
+        const obj: Record<string, number> = {
+          top: 10
+        };
+        obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+        return obj;
+      },
+      axisPointer: { 
+        label: {
+          color: 'rgba(255,255,255,.87)',
+          fontSize: 9,
+          backgroundColor: 'rgb(245 114 114 / 80%)',
+          borderColor: "rgb(245 114 114 / 80%)",
+          shadowBlur: 0,
+          borderWidth: 0.5,
+          padding: [4, 2, 3, 2],
+        },
+        animation: false,
+        type: 'cross',
+        lineStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [{
+              offset: 0,
+              color: 'rgba(30, 42, 66, 0.1)' // 0% 处的颜色
+            }, {
+              offset: 0.7,
+              color: 'rgba(30, 42, 66,0.9)' // 100% 处的颜色
+            }, {
+              offset: 1,
+              color: 'rgba(30, 42, 66,0.2)' // 100% 处的颜色
+            }]
+          },
+          width: 1,
+          shadowColor: 'rgba(255, 0, 0, 0.7)',
+          shadowBlur: 0,
+          shadowOffsetY: 68,
+        }
+      },
+    },
+    dataZoom: [{ //用于区域缩放
+      type: 'inside',
+      xAxisIndex: [0, 1],
+      start: 70,
+      end: 100,
+    }
+    ],
     series: [
       {
-        name: 'Day K',
         type: 'candlestick',
-        data: data.values,
+        name: '日K',
+        data: rawData.value.reverse(),
+        markLine: {
+        data:[{
+              name: 'value',
+              yAxis: 1800
+          }],
+      },
         itemStyle: {
-          color: Store.data.upColor,
-          color0: Store.data.downColor,
+          color: upColor,
+          color0: downColor,
           borderColor: undefined,
           borderColor0: undefined,
         },
-        markLine: {
-          symbol:['none','none'],
-          lineStyle: {
-            color:'red',
-            type:'solid',
-          },
-          data:[{
-              name: 'value',
-              yAxis: data.values.length?data.values[data.values.length-1][1]:''
-
-          }],
-        }
-      },
+      }, 
       {
         name: 'MA5',
         type: 'line',
-        data: dataMA5,
+        data: calculateMA(5, echartsData.value),
+        symbol: 'none',//去除圆点
         smooth: true,
-        showSymbol: false, 
-        lineStyle: {width: 1}
-      },
+        lineStyle: {width: 1},
+        z: 5,
+      }, 
       {
         name: 'MA10',
         type: 'line',
-        data: dataMA10,
+        data: calculateMA(10, echartsData.value),
+        symbol: 'none',//去除圆点
         smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          width: 1
-        }
+        lineStyle: {width: 1},
+        z: 4
       },
       {
         name: 'MA20',
         type: 'line',
-        data:dataMA20,
+        data: calculateMA(20, echartsData.value),
+        symbol: 'none',//去除圆点
         smooth: true,
-        showSymbol:false,
-        lineStyle: {
-          width: 1
-        }
+        lineStyle: {width: 1},
+        z: 3
       },
       {
-        name: 'Volume',
-        type: 'bar',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: data.volumes,
-        barWidth:'50%'
-      },
+          name: 'Volume',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data:volumes.value.reverse(),
+          barWidth:'50%'
+        },
+        {
+          name: 'VolumeMA5',
+          type: 'line',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: calculateMA(5, volumes.value),
+          symbol: 'none',//去除圆点
+          smooth: true,
+          lineStyle: {width: 1},
+          z: 5,
+        },
+        {
+          name: 'VolumeMA10',
+          type: 'line',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: calculateMA(10, volumes.value),
+          symbol: 'none',//去除圆点
+          smooth: true,
+          lineStyle: {width: 1},
+          z: 4,
+        },
     ]
   };
-
-  myChart.hideLoading();
   option && myChart.setOption(option);
-}
-
-// K线走势
-const getQQJYKX = async (period:string = '1min') => {
-  const res = await $api.getQQJYKX(Store.data.recommendList[Store.data.recommendIndex].MJname,period);
-  if(res && res.code == 200){
-    let list:any = []
-    res.list.forEach((item:any) => {
-      list.push(Object.values(item).map(Number));
-    });
-    KxStore.data = {
-      list,
-      quotes:res.quotes
-    }
-    setEchartOption(list);
-  }
+  settitle.value = true;
+  window.addEventListener('resize', () => { myChart.resize()})
 }
 
 // 期权登录验证
@@ -403,26 +475,6 @@ const handlemouseClick = (event:MouseEvent) => {
       }
 }
 
-// 切换产品列表
-const onChangeList = async (_ev:any) => {
-  const { dataset } = _ev.target;
-  Store.data.recommendIndex = Number(dataset['index']);
-  Store.data.sildershow = false;
-  const res = await $api.getTotalTrades(dataset['value']);
-  res.list.forEach((item:any,index:number)=>{
-    item.date = dayjs(item.date*1000).format("HH:mm:ss");
-    item.width = 200 * ++index/10 * (Number(item.amount)/10)
-  });
-  TotalTrades.data = res.list;
-  formData.data.Bid = Store.data.recommendList[Number(dataset['index'])].id;
-  // 重置属性
-  formData.data.amount = '';
-  Store.data.tabindex = 0;
-  Store.data.comboIndex = 0;
-  getQQJYKX('1min');
-  $store.commit('setUseLoading',true);
-}
-
 // 获取产品列表
 const getList = async () => {
   // const res = await $api.getList();
@@ -432,13 +484,101 @@ const getList = async () => {
     formData.data.Bid = res.data[0].id;
   }
 }
-// 生命周期
+
+var widthArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+// 获取买卖数据
+const getTotalTrades = async (symbol:string = 'eth_usdt') => {
+  let widthRandom:any = [];
+  const res = await $api.getTotalTrades(symbol);
+  if(res && res['code'] == 200){
+    widthArr.forEach(item=>{
+      widthRandom.push(Math.floor(Math.random()*(item - item*5 ) + item*7))
+    })
+    widthRandom.sort(function(m:number,n:number){return m-n; })
+    res.list.forEach((item:any,index:number)=>{
+      item['width'] = widthRandom[index];
+      item.date = dayjs(item.date*1000).format("HH:mm:ss");
+    })
+    TotalTrades.data = res.list;
+  }
+}
+
+// 切换产品列表
+const onChangeList = (_ev:any) => {
+  const { dataset } = _ev.target;
+  Store.data.proIndex = Number(dataset['index']);
+  Store.data.sildershow = false;
+  formData.data.Bid = dataset['id'];
+  // 重置属性
+  formData.data.amount = '';
+  Store.data.tabindex = 0;
+  Store.data.comboIndex = 0;
+  getTotalTrades(dataset['value']);
+  splitData(dataset['value']);
+  $store.commit('setUseLoading',true);
+  settitle.value = false;
+}
+
+// 下单重置
+const formDataClone = {...formData.data}
+
+// 选择购买时间
+const onSelect = (action: any, index: number) => {
+    showTimeCard.value = false;
+    Store.data.comboInfo = action.name;
+    Store.data.placeholder = action.maxmoney;
+    Store.data.comboIndex = index;
+    onUpdatemount(formData.data.amount);
+};
+
+// 计算金额
+const onUpdatemount = (value: string) => {
+  if(!Store.data.comboActions.length) return;
+  Store.data.ratio = (Number(value) * Store.data.comboActions[Store.data.comboIndex].ratio).toFixed(2);
+}
+
+// 立即下单
+const onSubmit = async () => {
+  if(!formData.data.amount){
+    showToast('请输入金额');return;
+  }else if(formData.data.amount < Store.data.comboActions[Store.data.comboIndex].minmoney){
+    showToast('金额太小'); return;
+  }else{
+    $store.commit('setUseLoading',true);
+    formData.data.comboInfoId = Store.data.comboActions[Store.data.comboIndex].id;
+    const res = await $api.getSubmitOrder(formData.data);
+    if(res && res['code'] == 200 ){
+      timeDown.value = Store.data.comboActions[Store.data.comboIndex].duration_m* 1000;
+      formData.data = formDataClone;
+      Store.data.show = false;
+      Ordershow.value = true;
+    }else{
+      showToast(res['msg'])
+    }
+  }
+}
+
+// 继续下单
+const handleContinue = () => {
+  Ordershow.value = false;
+  formData.data.amount = '';
+  timeDown.value = 1000;
+}
+
+// 倒计时结束
+const onFinish = () => {
+  timeDown.value = 1000;
+  Ordershow.value = false;
+};
+// 订单信息
+const Ordershow = ref<boolean>(false);
+
 onMounted(()=>{
-  getList();
   handleLogin();
+  getList();
+  splitData();
+  getTotalTrades();
   Promise.all([
-    $api.getQQJYKX(Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].MJname:'eth_usdt','1min'),
-    $api.getTotalTrades(Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].MJname:'eth_usdt'),
     $api.getSubmitOptions(),
     $api.getAuxiliary('options_trading_Xck')
   ])
@@ -446,50 +586,19 @@ onMounted(()=>{
     if(res.includes(undefined)||res[0]['code'] == 5001){
       return
     };
-    
-    let list:any = []
-    res[0].list.forEach((item:any) => {
-      list.push(Object.values(item).map(Number));
-    });
-    KxStore.data = {
-      list,
-      quotes:res[0].quotes
-    }
+    res[0].data.forEach(((item:any)=>{item.ratio = (item.ratio/100).toFixed(3)}));
+    Store.data.comboActions = res[0].data;
+    Store.data.comboInfo = res[0].data.length ? res[0].data[0].name : '';
+    Store.data.placeholder = res[0].data.length ? res[0].data[0].maxmoney : '0'
+    Store.data.options_trading = res[1].data1;
 
-    // 买卖数据格式化
-    res[1].list.forEach((item:any,index:number)=>{
-      item.date = dayjs(item.date*1000).format("HH:mm:ss");
-      item.width = 200 * ++index/10 * (Number(item.amount)/10)
-    });
-
-    if(res[2].data.length){
-      res[2].data.forEach(((item:any)=>{item.ratio = (item.ratio/100).toFixed(3)}));
-    }else{
-      Store.data.useOrder = false;
-    }
-
-    Store.data.comboActions = res[2].data;
-    Store.data.comboInfo = res[2].data.length ? res[2].data[0].name : '';
-    Store.data.placeholder = res[2].data.length ? res[2].data[0].maxmoney : '0'
-    TotalTrades.data = res[1].list;
-    Store.data.options_trading = res[3].data1;
-    loading.value = true;
-    setTimeout(()=>{setEchartOption(list)},500);
-      // 买卖数据轮询
-      time = setInterval(() => {
+    // 买卖数据轮询
+    time = setInterval(() => {
       setTimeout(async () => {
         $store.commit('setUseLoading',false);
-        const res = await $api.getTotalTrades(Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].MJname:'eth_usdt');
-        if(res && res.code == '200'){
-          res.list.forEach((item:any,index:number)=>{
-            item.date = dayjs(item.date*1000).format("HH:mm:ss");
-            item.width = 200 * ++index/10 * (Number(item.amount)/10);
-          });
-          TotalTrades.data = res.list;
-        }
-      }, 200)
-    }, 5000)
-
+        getTotalTrades(Store.data.recommendList[Store.data.proIndex]['MJname']);
+      }, 100)
+    }, 6000)
     
   })
   .catch((err)=>{
@@ -505,22 +614,22 @@ onUnmounted(()=>{
 </script>
 
 <template>
-  <div class="page-main" v-if="loading">
+  <div class="page-main">
 
     <section class="candlesticks-wrap">
       <div class="candlesticks-top">
         <div class="candlesticks-topPrice">
           <div class="variety">
             <div class="variety-title" @click="Store.data.sildershow = !Store.data.sildershow">
-              {{Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].ZSname:'USDT'}} 
+              {{Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].ZSname:'USDT'}} 
               <van-icon name="arrow-down" />
             </div>
-            <div class="variety-price" :class="{'red':Number(KxStore.data.quotes.riseRate)<0?true:false}">
-              <span>{{KxStore.data.quotes.close}}</span><span class="riseRate">{{KxStore.data.quotes.riseRate}}%</span></div>
+            <div class="variety-price" :class="{'red':Number(QQQuotes?QQQuotes.riseRate:-1)<0?true:false}">
+              <span>{{QQQuotes?QQQuotes.close:0}}</span><span class="riseRate">{{QQQuotes?QQQuotes['riseRate']:0}}%</span></div>
           </div>
           <div class="price">
-            <div>24H High:{{ Number(KxStore.data.quotes.high).toFixed(5) }}</div>
-            <div>24H Low:{{ Number(KxStore.data.quotes.low).toFixed(5) }}</div>
+            <div>24H High:{{ Number(QQQuotes?QQQuotes.high:0.00).toFixed(5) }}</div>
+            <div>24H Low:{{ Number(QQQuotes?QQQuotes.low:0.00).toFixed(5) }}</div>
           </div>
         </div>
 
@@ -530,8 +639,17 @@ onUnmounted(()=>{
 
       </div>
 
-      <div class="candlesticks-echarts" id="echartsBox">
-
+      <div class="charts-wrap">
+        <div class="candlesticks-echarts" id="echartsBox"></div>
+        <div class="charts-label" v-show="settitle">
+					<div class="charts-MA5">MA5:{{MA5 || 0}}</div>
+					<div class="charts-MA10">MA10:{{MA10 || 0}}</div>
+					<div class="charts-MA20">MA20:{{MA20 || 0}}</div>
+				</div>
+				<div class="charts-bar-label" v-show="settitle">
+					<div class="charts-MA5">MA5:{{ volMA5 || 0}}</div>
+					<div class="charts-MA10">MA10:{{ volMA10 || 0}}</div>
+				</div>
       </div>
     </section>
 
@@ -543,11 +661,11 @@ onUnmounted(()=>{
         <div class="history-title">
           <p>Time</p><p>Direction</p><p>Price</p><p>Quantity</p>
         </div>
-        <div class="history-info" v-if="loading">
+        <div class="history-info">
           <!-- left -->
           <div class="history-data">
             <div class="data-item" v-for="(item,index) in TotalTrades.data" :key="index">
-              <div class="data-mask-green" :style="{'min-width':`${item.width}px`}"></div>
+              <div class="data-mask-green" :style="{'width':`${item.width}px`,'max-width':'100px'}"></div>
               <div class="data-txt">{{item.date}}</div>
               <div class="data-direc" :class="{'red':item.type == 'sell' ,'green':item.type == 'buy'}">{{item.type}}</div>
             </div>
@@ -555,7 +673,7 @@ onUnmounted(()=>{
           <!-- right -->
           <div class="history-data">
             <div class="data-item" v-for="(item,index) in TotalTrades.data" :key="index">
-              <div class="data-mask-red" :style="{'min-width':`${item.width}px`}"></div>
+              <div class="data-mask-red" :style="{'width':`${item.width}px`,'max-width':'100px'}"></div>
               <div class="data-txt">{{ item.price }}</div>
               <div class="data-quantity">{{item.amount}}</div>
             </div>
@@ -568,7 +686,7 @@ onUnmounted(()=>{
 
     <div class="cus-sheet">
       <!-- buy Control  -->
-      <van-action-sheet v-model:show="Store.data.show" title="確認訂單" v-if="loading">
+      <van-action-sheet v-model:show="Store.data.show" title="確認訂單">
         <!-- 说明按钮 -->
         <div class="buy-tip" @click="Store.data.showTip = true"><van-icon name="warning" size="25" color="#F7931A" /></div>
         <div class="buy-content">
@@ -576,9 +694,9 @@ onUnmounted(()=>{
             <div v-show="!Store.data.showTip">
             <div class="buy-select">
               <div class="buy-name">
-                <img :src="Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].Ioc:'#'" :alt="Store.data.recommendList[Store.data.recommendIndex].name">
+                <img :src="Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].Ioc:'#'" :alt="Store.data.recommendList[Store.data.proIndex].name">
                 <div class="buy-info">
-                  <p class="buy-name">{{Store.data.recommendList.length?Store.data.recommendList[Store.data.recommendIndex].name:'USDT'}} </p>
+                  <p class="buy-name">{{Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].name:'USDT'}} </p>
                   <p class="buy-flog">buy <van-tag color="#00c6931a" :text-color="!formData.data.ZD?'#00C693':'red'">{{!formData.data.ZD?'涨':'跌'}}</van-tag></p>
                 </div>
               </div>
@@ -660,7 +778,7 @@ onUnmounted(()=>{
       <div class="recommend-list">
         <div class="title"><span>現貨行情</span></div>
         <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
-          <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index"></div>
+          <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index" :data-id="item.id" ></div>
           <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
           <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
           <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
@@ -692,7 +810,7 @@ onUnmounted(()=>{
             <div class="order-info">
               <div class="order-item"><div class="left">方向</div><div class="right green">{{!formData.data.ZD?'涨':'跌'}}|>{{Store.data.comboActions[Store.data.comboIndex].ratio}}%</div></div>
               <div class="order-item"><div class="left">金额</div><div class="right">{{formData.data.amount}} USDT</div></div>
-              <div class="order-item"><div class="left">執行價</div><div class="right">{{ KxStore.data.quotes.close }}</div></div>
+              <div class="order-item"><div class="left">執行價</div><div class="right">{{  QQQuotes ? QQQuotes.close : 0 }}</div></div>
               <div class="order-item"><div class="left">盈利率</div><div class="right"></div></div>
               <div class="order-item"><div class="left">盈利</div><div class="right">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="20px" height="26px" viewBox="0 0 24 30" xml:space="preserve">
@@ -875,7 +993,7 @@ onUnmounted(()=>{
       }
     }
     .candlesticks-bottom{
-      .flexMixin(center);
+      .flexMixin(space-evenly);
       margin: 10px 0;
       font-size: 12px;
       font-weight: normal;
@@ -1235,6 +1353,48 @@ onUnmounted(()=>{
   }
 }
 
+.charts-wrap{
+  position: relative;
+}
+.charts-label {
+	position: absolute;
+	left: 80px;
+	top: 3px;
+	font-size: 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.charts-label div {
+	margin-right: 14px;
+}
+
+.charts-MA5 {
+	color: #FFC62B;
+}
+
+.charts-MA10 {
+	color: #4FD4FF;
+}
+
+.charts-MA20 {
+	color: #C767BE;
+}
+
+.charts-bar-label {
+	position: absolute;
+	left: 65px;
+	top: 75.8%;
+	font-size: 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.charts-bar-label div {
+	margin-right: 14px;
+}
 @keyframes mask-anime{
   0% {
     opacity: 0;

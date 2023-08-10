@@ -49,9 +49,6 @@ const onLoad = async () => {
         }else{
             Store.data.pageNum+=1;
         }
-
-        console.log(res,total);
-        
     }
     $store.commit('setUseLoading',false);
 }

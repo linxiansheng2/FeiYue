@@ -36,8 +36,6 @@ const onChangePage = async (_ev:any) => {
     Store.data.count = parseInt(String((res['total'] + Store.data.pageSize -1 ) / Store.data.pageSize)) ;
     Store.data.orderList = res['rows'];
     Store.data.total = res['total'];
-    console.log(res);
-    
   }
 }
 

@@ -30,9 +30,6 @@ const Store:any = reactive({data:{
   rechargeNew:''
 }})
 
-// 充值 store
-// const recharge = ref();
-// const rechargeNew = ref();
 
 // 提现 Store
 const price = ref('');
@@ -119,12 +116,6 @@ const onCopy = (val:string) => {
     Promise.all(reqList)
     .then(res=>{      
       if(res.includes(undefined)) return
-      // if(res[0]['code'] != 200){
-      //   setTimeout(()=>{
-      //     router.push('/');
-      //   },1000)
-      //   return;
-      // }
       Store.data.txmoneyList = res[0].rows;
       if(res[1]){
         Store.data.czmoneyItem = res[1].data;
@@ -161,8 +152,8 @@ const onCopy = (val:string) => {
         <div class="deit-list">
           <div class="name">錢包地址</div>
           <div class="network grey">
-            <div class="money-address">{{ $route.query['id']?Store.data.czmoneyItem?.address: Store.data.userInfo?.address }}</div>
-            <div class="clone-btn" @click="onCopy($route.query['id']?Store.data.czmoneyItem?.address: Store.data.userInfo?.address)">Copy</div>
+            <div class="money-address">{{ $route.query['id']?Store.data.czmoneyItem.address: userInfo?.address }}</div>
+            <div class="clone-btn" @click="onCopy($route.query['id']?Store.data.czmoneyItem.address: userInfo?.address)">Copy</div>
           </div>
         </div>
 

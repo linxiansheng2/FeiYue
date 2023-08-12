@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
-    import { ref, reactive ,watch ,onMounted, computed } from 'vue'
+    import { ref, reactive ,watch ,onMounted, computed ,onUpdated } from 'vue'
     import { useRouter } from 'vue-router'
     import { showToast } from 'vant'
     import { vantLocales } from '@/lang'
@@ -81,9 +81,11 @@ export default {
         // {text:'Nederlands',value:'nl',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAAAX0lEQVQ4jWNcJ6Pxn4GGgImWhjPQwwKW///+YQhS1YKvzx5hCFITMD5Yvoamkcz4////0VSEFwyDfLD5wA0MQWoCRmbdapqmIhZpcX4MQapawMzEiCFITTDEUxEDAwMAFf8TPIcVfqoAAAAASUVORK5CYII='},
     ]
 
+    // 清除缓存
     const handleReCache = () => {
         window.localStorage.clear();
         window.sessionStorage.clear();
+        document.cookie = "cookieName=; path=/;";
         router.push('/');
         setTimeout(() => {
             window.location.reload();
@@ -110,6 +112,11 @@ export default {
         langIndex.value = languageArr.map((item:any)=>item.value).indexOf(langVal.value);
     })
 
+    onUpdated(()=>{
+        let navwrap = document.querySelector('#nav-wrap')!;
+        navwrap.addEventListener('touchmove', e => e.stopPropagation(),false);
+    })
+
     watch(() => router.currentRoute.value,(newValue: any,oldValue: any) => {
         $emit("update:silderflog",false);
         activeNames.value = '0';
@@ -122,7 +129,8 @@ export default {
 <template>
     <div class="silder-box">
     <van-overlay :show="silderflog" @click="handlemouseClick">
-        <div class="nav-wrap">
+        <div id="nav-wrap">
+        <div class="nav-wrap" >
             <div class="sub-menu-wrap">
                 <van-collapse v-model="activeNames" accordion>
                     <!-- 用户信息 -->
@@ -177,6 +185,7 @@ export default {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </van-overlay>
     </div>
@@ -253,16 +262,15 @@ export default {
 .silder-box{
     --van-overlay-z-index:99;
 }
+#nav-wrap{
+    height: 100vh;
 .nav-wrap{
     text-align: left;
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 70%;
-    height: 100vh;
+    height: 100%;
     overflow: scroll;
     background: #fff;
-    z-index: 9999;
+    z-index: 99;
         .sub-menu-wrap {
             padding: 16px 0 30px 10px;
             // 用户信息
@@ -318,6 +326,7 @@ export default {
             }
             
             }
+}
 }
 
 

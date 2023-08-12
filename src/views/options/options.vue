@@ -604,7 +604,7 @@ onMounted(()=>{
   .catch((err)=>{
     console.log(err);
   })
-
+  document.getElementById('recommend-wrap')!.addEventListener('touchmove', e => e.stopPropagation(),false);
 })
 
 onUnmounted(()=>{
@@ -775,13 +775,15 @@ onUnmounted(()=>{
     </div>
 
     <van-overlay :show="Store.data.sildershow" @click="handlemouseClick" :lazy-render="false">
-      <div class="recommend-list">
-        <div class="title"><span>現貨行情</span></div>
-        <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
-          <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index" :data-id="item.id" ></div>
-          <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
-          <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
-          <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
+      <div class="recommend-wrap" id="recommend-wrap">
+        <div class="recommend-list">
+          <div class="title"><span>現貨行情</span></div>
+          <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
+            <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index" :data-id="item.id" ></div>
+            <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
+            <div class="close" :class="{'red':item.riseRate < 0}">{{item.close}}</div>
+            <div class="riseRate" :class="{'red':item.riseRate < 0}">{{ item.riseRate > 0 ? `+${item.riseRate}` : `${item.riseRate}` }}%</div>
+          </div>
         </div>
       </div>
     </van-overlay>
@@ -874,91 +876,90 @@ onUnmounted(()=>{
   height: 400px;
 }
 
-.recommend-list{
-  background-color: #fff;
-  text-align: left;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 80%;
+.recommend-wrap{
   height: 100vh;
-  overflow: scroll;
-  background: #fff;
-  z-index: 9999;
-  .title{
-    font-size: 20px;
-    font-weight: 700;
-    color: #000;
-    margin: 30px 0;
-    padding: @paddHorizontal;
-  }
-  .recommend-item{
-    .flexMixin(space-between);
-    position: relative;
-    height: 45px;
-    padding: @paddHorizontal;
-    .mask{
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
-      background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
-      background-size: 200%;
-      -webkit-animation: mask-anime 1s .4s ease both;
-      -moz-animation: mask-anime 1s .4s ease both;
-      animation: mask-anime 1s .4s ease both;
-      &::after{
-        content: '';
-        height: 1px;
-        width: 100%;
+  .recommend-list{
+    text-align: left;
+    width: 80%;
+    height: 100%;
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
+    background-color: #fff;
+    z-index: 99;
+    .title{
+      font-size: 20px;
+      font-weight: 700;
+      color: #000;
+      margin: 30px 0;
+      padding: @paddHorizontal;
+    }
+    .recommend-item{
+      .flexMixin(space-between);
+      position: relative;
+      height: 45px;
+      padding: @paddHorizontal;
+      .mask{
         position: absolute;
         left: 0;
-        bottom: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
         background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
         background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
         background-size: 200%;
+        -webkit-animation: mask-anime 1s .4s ease both;
+        -moz-animation: mask-anime 1s .4s ease both;
+        animation: mask-anime 1s .4s ease both;
+        &::after{
+          content: '';
+          height: 1px;
+          width: 100%;
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          background: -webkit-linear-gradient(left,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
+          background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
+          background-size: 200%;
+        }
       }
-    }
-    .mask.red{
-      background: -webkit-linear-gradient(left,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
-      background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
-    }
-    .name{
-      color: #3b3e4e;
-      width: 90px;
-      .subname{
-        font-size: 12px;
-        color: #ccc;
-        letter-spacing: 0;
+      .mask.red{
+        background: -webkit-linear-gradient(left,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
+        background: linear-gradient(90deg,rgba(230,93,68,0),rgba(230,93,68,.2) 50%,rgba(230,93,68,.3) 80%,rgba(230,50,46,.4));
       }
-    }
-    .close{
-      color: @greenColor;
-      font-size: 17px;
-      .multiEllipsis(1);
-      flex-basis: 35%;
-    }
-    .close.red{
-      color: @redColor;
-    }
-    .riseRate{
-      width: 70px;
-      height: 27px;
-      line-height: 30px;
-      text-align: center;
-      font-size: 13px;
-      border-radius: 4px;
-      color: #fff;
-      background: @greenColor;
-    }
-    .riseRate.red{
-      background-color: @redColor;
+      .name{
+        color: #3b3e4e;
+        width: 90px;
+        .subname{
+          font-size: 12px;
+          color: #ccc;
+          letter-spacing: 0;
+        }
+      }
+      .close{
+        color: @greenColor;
+        font-size: 17px;
+        .multiEllipsis(1);
+        flex-basis: 35%;
+      }
+      .close.red{
+        color: @redColor;
+      }
+      .riseRate{
+        width: 70px;
+        height: 27px;
+        line-height: 30px;
+        text-align: center;
+        font-size: 13px;
+        border-radius: 4px;
+        color: #fff;
+        background: @greenColor;
+      }
+      .riseRate.red{
+        background-color: @redColor;
+      }
     }
   }
 }
-
 
 .page-main{
   padding-bottom: 120px;

@@ -163,7 +163,6 @@ onMounted(()=>{
 
 <template>
   <div class="page-main" >
-        <div class="title">總資產賬戶</div>
         <div class="account-card account-wrap layout" >
             <div class="account-info">
                 <div class="account-item">
@@ -228,9 +227,6 @@ onMounted(()=>{
     --van-padding-xs:0;
     --van-tabs-line-height:20px;
     padding: 0 15px;
-   .title{
-    margin: 10px;
-   }
    .layout{
     margin-top: 15px;
    }

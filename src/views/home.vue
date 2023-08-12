@@ -34,19 +34,6 @@ const Store:any = reactive({data:{
   product:1,      //产品查询
   productList:[], //产品列表
 }})
-const hotcoinData = reactive({data:[
-  {id:0,title:'Huobi'},
-  {id:1,title:'Kucoin'},
-  {id:2,title:'Btbit'},
-  {id:3,title:'Gate.oi'},
-  {id:4,title:'upbit'},
-  {id:5,title:'binate'},
-  {id:6,title:'csdsad'},
-  {id:7,title:'test'},
-  {id:8,title:'test'},
-  {id:9,title:'test'},
-  {id:10,title:'huobi'},
-]})
 
 // 充值登录后显示
 const loginStore = computed(()=>$store.state.login);
@@ -83,12 +70,13 @@ const onClickTab = async (event:Event|any) => {
 let requestArr = [
   $api.getHomeBanner(),
   $api.getBulletin(0),
-  $api.getCooperate(),
+  $api.getCooperate(1,20),
   $api.getUsermoneylist(),
   $api.getQQJYproduct(Store.data.product)
 ]
 onMounted(()=>{
   Store.data.swiperWidth = document.documentElement.clientWidth*0.65;
+  window.addEventListener('resize', () => { Store.data.swiperWidth = document.documentElement.clientWidth*0.65;})
   Store.data.mediaBody = Store.data.mediaData[0].txt;  
   Promise.all(requestArr)
   .then((res:any[])=>{
@@ -192,16 +180,6 @@ onMounted(()=>{
 
         <!-- hotcoin-tab start -->
         <section class="hotcoin-wrap">
-          <div class="hotcoin-part">
-            <van-tabs v-model:active="Store.data.active" shrink>
-              <van-tab v-for="(item,index) in hotcoinData.data" :key="index">
-                <template #title>
-                   <span class="hotcoin-title" :class="{'active':(item.id)==Store.data.active}">{{item.title}}</span>
-                </template>
-                 <!-- {{ item.id }}--{{ active }} -->
-              </van-tab>
-            </van-tabs>
-          </div>
 
           <div class="hotcoin-child">
             <van-tabs v-model:active="Store.data.hotcoinactive" @click-tab="onClickTab" shrink>
@@ -247,7 +225,7 @@ onMounted(()=>{
         <section class="enroll-wrap">
           <div class="layout">
             <div class="home-tip">{{$t('home.enroll_tip')}}</div>
-            <van-button class="enroll-button" type="primary" color="#2850E7" block>{{$t('home.enroll_btn')}}</van-button>
+            <van-button class="enroll-button" type="primary" color="#2850E7" block @click="$router.push('/options')">{{$t('home.enroll_btn')}}</van-button>
           </div>
         </section>
 
@@ -577,32 +555,16 @@ onMounted(()=>{
   --van-padding-xs:0;
   --van-tabs-line-height:auto;
   padding: @wrapPadd;
-  margin-top: 18px;
   background: #F4F6F8;
-  .hotcoin-part{
-    --van-tabs-bottom-bar-color:@transparent;
-  }
+
   .hotcoin-child{
     --van-tabs-bottom-bar-color:#2850E7;
     --van-tabs-bottom-bar-height:1px;
-    margin: 5px 0 10px;
+    --van-tabs-bottom-bar-width:22px;
     .hotcoin-child-title{
-      padding: 15px 13px;
+      padding: 12px 12px 5px;
       display: block;
     }
-  }
-  .hotcoin-title.active{
-    color: #fff;
-    background: #2850E7;
-  }
-  .hotcoin-title{
-    color: #000;
-    background: #fff;
-    padding: 8px 12px;
-    display: block;
-    font-size: 16px;
-    margin-right: 7px;
-    border-radius: 10px;
   }
 }
 
@@ -848,9 +810,9 @@ onMounted(()=>{
 
 // platformInfo
 .platformInfo-list{
-  .flex-dom(space-around);
+  .flex-dom(space-evenly);
   flex-wrap: wrap;
-  padding: 0 10px;
+  padding: 10px 0 0;
   .platformInfo-item{
     padding: 0 15px 10px;
     margin-bottom: 13px;

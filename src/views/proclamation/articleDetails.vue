@@ -46,7 +46,7 @@ onMounted(()=>{
 </template>
 
 <style scoped lang="less">
-@padding:8px;
+@padding: 12px;
 .layout{
   padding: 12px 15px;
   .main{

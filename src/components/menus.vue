@@ -12,10 +12,8 @@ import api  from '../https';
 import {useStore} from 'vuex'
 import { showToast } from 'vant';
 const $store = useStore();
-const router = useRouter();
 let props = defineProps(["silderflog"]);
 let $emit = defineEmits(["update:silderflog"]);
-const qianbao = ref({qbdz:''});
 
 const userStore = computed(()=>$store.state.userinfo);
 const loginStore = computed(()=>$store.state.login);
@@ -24,20 +22,26 @@ const loginStore = computed(()=>$store.state.login);
 //侧栏回调
 const onChange = () => {
     $emit("update:silderflog",!props.silderflog);
+    // let navbox = document.querySelector('#nav-wrap');
+    // console.log(navbox);
 }
 
 // 初始化
 const chushihua = async (ev:Event) =>{
-    const geerliWS ="http://goerli.infura.io/ws/v3/e4f789009c9245eeaad1d93ce9d059bb";
-    const etcusdt = "0x680E9fF35AD84fa0fE1Afd3c2A408E3fDe2c12bB";
-    f.ercchushihua(geerliWS,mtcContract,etcusdt);
-    const code =  await f.erclianjie();
-    // console.log(code,'连接');
-    var a = await f.getusers();
-    sessionStorage.setItem('etcusdt',etcusdt);
-    // console.log(a,'取账号');
-    qianbao.value.qbdz = a;
-    logins(a);
+    console.log(loginStore.value);
+    
+    if(loginStore.value){
+        return
+    }else{
+        const geerliWS ="http://goerli.infura.io/ws/v3/e4f789009c9245eeaad1d93ce9d059bb";
+        const etcusdt = "0x680E9fF35AD84fa0fE1Afd3c2A408E3fDe2c12bB";
+        f.ercchushihua(geerliWS,mtcContract,etcusdt);
+        const code =  await f.erclianjie();
+        let response = await f.getusers();
+        sessionStorage.setItem('etcusdt',etcusdt);
+        logins(response);
+    }
+
 }
     // 登录
 const logins = async (address:any) =>{

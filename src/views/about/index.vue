@@ -4,12 +4,27 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
+import api from "../../https";
+const datas=reactive<any>({data:{}})
+const flag=ref<boolean>(false)
+const postabout=async()=>{
+  const sbcxk=await api.postabout()
+  console.log(sbcxk,'sb');
+  if(sbcxk.code==200){
+    datas.data=sbcxk
+    flag.value=true;
+  }
+  
+}
+onMounted(()=>{
+  postabout()
+})
 </script>
 
 <template>
-  <div>
-    <div class="about_top">
+  <div v-if="flag">
+    <!-- <div class="about_top">
       <h1 class="about_h1">快捷,安全,輕鬆交易600多種加密貨幣</h1>
       <p class="desc">全球領先的數字資產交易平台</p>
       <img class="desc_img" src="../../assets/mining/ETH-1.png" alt="" />
@@ -91,18 +106,27 @@ import { ref, reactive } from "vue";
                 <img class="desc_img" src="../../assets/mining/xiajie.png" alt="">
             </div>
       </div>
+    </div> -->
+    <div class="about_top">
+      <!-- <img class="about_img" :src=datas.data.data1.img  alt=""> -->
+          <div v-html="datas.data.data1.body"></div>
+
+        
     </div>
-    <div class="bottoma">
+    <!-- <div class="bottoma">
         <p class="bottomp">Copyright © 2023 LOGOIPSUM002 版權所有</p>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <style scoped lang="less">
 .about_top {
   padding: 0 19px;
-  margin-top: -9px;
+  // margin-top: px;
       background-color: #fff;
+}
+.about_img{
+  width: 100%;
 }
 .about_h1 {
   font-size: 28px;

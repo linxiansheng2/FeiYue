@@ -97,6 +97,7 @@ export default {
         line-height: 150%;
         color: #00c693;
         font-weight: bold;
+        text-align: right;
         .deposit-hv{
           font-size: 12px;
           color: #111;

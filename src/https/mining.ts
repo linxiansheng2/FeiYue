@@ -31,9 +31,9 @@ export default {
     },
     //记录数据接口
     
-    postrecorded(type:any,pageNum:any){
+    postrecorded(type:any,pageNum:number=1,pageSize : number = 5){
         return instance.post('api/clien/zyTeam.php/list',{
-            type,pageNum
+            type,pageNum,pageSize
         })
     },
     //质押套餐列表接口：

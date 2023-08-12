@@ -53,12 +53,14 @@ const fenxianghaibao=()=>{
 }
 //返回
 const fanhuia = () => history.back();
+const flags=ref<boolean>(false)
 let data=reactive<any>({data:{}})
 const getamout=async()=>{
     const datas=await api.getamout()
     console.log(datas,'邀请数据');
     if(datas.code==200){
       data.data=datas.data
+      flags.value=true
     }
 }
 //邀请返佣比例
@@ -68,7 +70,7 @@ const getrebeta=async()=>{
   console.log(sbcxk,'返佣比例');
   if(sbcxk.code==200){
     sbdata.data=sbcxk.rebate
-
+    flags.value=true
   }
   
 }
@@ -79,7 +81,7 @@ onMounted(()=>{
 </script>
 
 <template>
-  <div class="aaaaaa">
+  <div class="aaaaaa" v-if="flags">
     <div class="yao_top">
       <div class="share_heade">
         <div @click="fanhuia">

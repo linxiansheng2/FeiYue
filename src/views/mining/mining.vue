@@ -22,6 +22,7 @@ const bian = ref<boolean>(true); //一代
 const erdai = ref<boolean>(true); //二代
 const sandai = ref<boolean>(true); //三代
 const list = ref<any>(["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"]);
+
 const Store: any = reactive({
   data: {
     active: "",
@@ -43,7 +44,7 @@ const Store: any = reactive({
         title: "一代收益",
         useDown: true,
         count: 0,
-        key: 0,
+        key: 1,
         data: {},
         value: "TDZSY1",
       },
@@ -51,7 +52,7 @@ const Store: any = reactive({
         title: "二代收益",
         useDown: true,
         count: 0,
-        key: 1,
+        key: 2,
         data: {},
         value: "TDZSY2",
       },
@@ -59,7 +60,7 @@ const Store: any = reactive({
         title: "三代收益",
         useDown: true,
         count: 0,
-        key: 2,
+        key: 3,
         data: {},
         value: "TDZSY3",
       },
@@ -67,8 +68,11 @@ const Store: any = reactive({
     imgUrl: require("../../assets/mining/zanwu.png"),
   },
 });
+const xiaji = reactive<any>({ data: {} });
+const xiajiflag = ref<any>(false);
 const onChangeMoney = async (key: number) => {
   // Store.data.flog = Store.data.active == key + 2 ? !Store.data.flog : true;
+  console.log(key, "key");
 
   if (Store.data.active == key) {
     Store.data.flog = !Store.data.flog;
@@ -84,6 +88,11 @@ const onChangeMoney = async (key: number) => {
   // }
   const rescxk = await api.postsubordinate(key, 0);
   console.log(rescxk, "下级收益");
+  if (rescxk.code == 200) {
+    xiaji.data = rescxk.rows;
+    console.log(xiaji, "xiaji");
+    xiajiflag.value = true;
+  }
 };
 
 const jiajian = async (ev: any) => {
@@ -129,7 +138,7 @@ const onChangeNav = (_ev: any) => {
   console.log(dataset);
 
   navIndex.value = Number(dataset.index);
-  postrecorded(Number(dataset.index));
+  postrecorded(Number(dataset.index), (currentPage.value = 1));
 };
 
 // 矿池数据接口
@@ -197,29 +206,34 @@ const getkcshuju = async () => {
 };
 
 //记录数据接口
-let xiabiaoname = ref<any>(0);
+// let xiabiaoname = ref<any>(0);
 let datalist = reactive<any>({ data: [] });
+const currentPage = ref<number>(1); //页数双向绑定的值
+const zongshu = ref<number>(0);
 
-// const onClickTab = (active: any) => {
-//   console.log(active, "wocao");
-//   xiabiaoname.value = active.name;
-//   console.log(xiabiaoname.value, "xiabiaoname");
-
-//   // postrecorded();
-// };
 const flagsss = ref<boolean>(false);
-
-const postrecorded = async (index: number) => {
-  const sbaa: any = await api.postrecorded(index, 1);
-  // console.log(sbaa,'shuju');
-  datalist.data = sbaa.rows;
-  console.log(datalist, "shuju");
-  flagsss.value = true;
+const change = (ev: any) => {
+  console.log(ev, "翻页", currentPage.value);
+  // currentPage.value=ev
+  // dongasb.value=ev
+  postrecorded(navIndex.value, ev);
 };
+const postrecorded = async (index: number, page: any) => {
+  // page=currentPage.value
+  const sbaa: any = await api.postrecorded(index, page);
+  console.log(sbaa, "shuju1");
+  if (sbaa.code == 200) {
+    zongshu.value = sbaa.total;
+    datalist.data = sbaa.rows;
+    console.log(datalist, "shuju2");
+    flagsss.value = true;
+  }
+};
+
 const onClickTabs = (active: any) => {
   // console.log(active,'上面的')
   if (active.name == 2) {
-    postrecorded(0);
+    postrecorded(0, 1);
   }
 };
 //质押套餐列表接口：
@@ -257,15 +271,15 @@ const gobuy = async (ev: any) => {
   }
 };
 //质押订单接口：
-const shuaxinmoney=async()=>{
-        if(datacxk.data1.Utype == 2 || datacxk.data1.Utype == 3){
-          return
-        }else{
-          const res=await api.getlxmoney()
-          console.log(res,'是否为2 3');
-          datacxk.data1.usdt_LX=res.Money
-        }
-}
+const shuaxinmoney = async () => {
+  if (datacxk.data1.Utype == 2 || datacxk.data1.Utype == 3) {
+    return;
+  } else {
+    const res = await api.getlxmoney();
+    console.log(res, "是否为2 3");
+    datacxk.data1.usdt_LX = res.Money;
+  }
+};
 const zhiyajilu = () => {
   router.push("/pledgerecord");
 };
@@ -276,7 +290,6 @@ const gundonga = async () => {
   const scxs: any = await api.getshouyia();
   console.log(scxs, "滚动收益");
   gundong.data = scxs.data;
-  
 };
 
 //获取链上usdt余额
@@ -571,6 +584,12 @@ onMounted(() => {
                 <div class="shujucolor">{{ items.create_time }}</div>
                 <div class="shujucolor">{{ items.money }}</div>
               </div>
+              <van-pagination
+                v-model="currentPage"
+                :page-count="zongshu"
+                mode="simple"
+                @change="change"
+              />
             </div>
           </div>
         </van-tab>
@@ -607,14 +626,27 @@ onMounted(() => {
             class="border_bottom"
             v-show="Store.data.flog && Store.data.active == itemsa.key"
           >
-            <div class="zanwu_img">
+            <div class="zanwu_img" v-if="!xiaji.data.length">
               <img src="../../assets/mining/zanwu.png" alt="" />
               <div>暂无数据</div>
             </div>
+           <div v-else>
+            <div class="timer">
+              <div class="timertitle">时间</div>
+              <div class="timertitle">收益</div>
+            </div>
+            <div
+              class="timer"
+              v-for="itemxiaji in xiaji.data"
+              :key="itemxiaji.id"
+            >
+              <div class="timertitle">{{ itemxiaji.create_time }}</div>
+              <div class="timertitle">{{ itemxiaji.money }}</div>
+            </div>
+           </div>
           </div>
         </div>
       </div>
-     
     </div>
     <div class="accounta">礦池數據</div>
     <div class="account_ua" v-if="flagss">
@@ -656,9 +688,14 @@ onMounted(() => {
       <div class="sbacxk">
         <div class="Scrollbox">
           <div class="Scrollcont">
-            <div  v-for="(itemss,index) in gundong.data" :key="index" class="dsbcxk">
-            <div class="gundongse">{{itemss.address}}</div>
-            <div class="lsbcxka">{{ itemss.money }}ETH</div></div>
+            <div
+              v-for="(itemss, index) in gundong.data"
+              :key="index"
+              class="dsbcxk"
+            >
+              <div class="gundongse">{{ itemss.address }}</div>
+              <div class="lsbcxka">{{ itemss.money }}ETH</div>
+            </div>
           </div>
         </div>
         <!-- <ListScroll /> -->
@@ -1064,6 +1101,17 @@ body {
     overflow: hidden;
     // margin-top: 14px;
   }
+  .timer {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+    margin-top: 8px;
+    .timertitle{
+      font-weight: 500;
+    color: #999ba9;
+    font-size: 13px;
+    }
+  }
   .border_bottom {
     border-top: 1px solid #ccc;
     margin-top: 14px;
@@ -1406,11 +1454,11 @@ body {
     margin-top: 100px;
     -webkit-animation: Scroll 15s linear infinite;
     -moz-animation: Scroll 10s linear infinite;
-   
-    .dsbcxk{
- display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+    .dsbcxk {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   }
 }
@@ -1422,29 +1470,29 @@ body {
   // 100% {
   //   margin-top: -200px;
   // }
-   0% {
+  0% {
     transform: translateY(0);
   }
   100% {
     transform: translateY(-100%);
   }
 }
-.gundongse{
+.gundongse {
   // text-overflow: ellipsis;
   width: 50%;
-   white-space: nowrap; /* 禁止换行 */
-        overflow: hidden; /* 超出部分隐藏 */
-        text-overflow: ellipsis; /* 溢出时显示省略号 */
-        // margin-left: 13px;
-        margin: 8px 0 8px 13px;
-        color: #000;
-        font-size: 15px;
-        font-weight: 500;
+  white-space: nowrap; /* 禁止换行 */
+  overflow: hidden; /* 超出部分隐藏 */
+  text-overflow: ellipsis; /* 溢出时显示省略号 */
+  // margin-left: 13px;
+  margin: 8px 0 8px 13px;
+  color: #000;
+  font-size: 15px;
+  font-weight: 500;
 }
-.lsbcxka{
-  margin-right:8px;
-        color: #000;
-        font-size: 15px;
-        font-weight: 500;
+.lsbcxka {
+  margin-right: 8px;
+  color: #000;
+  font-size: 15px;
+  font-weight: 500;
 }
 </style>

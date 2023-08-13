@@ -74,4 +74,8 @@ onMounted(()=>{
     }
   }
 }
+
+:deep(.main-info img){
+  width: 100%;
+}
 </style>

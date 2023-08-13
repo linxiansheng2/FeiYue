@@ -16,12 +16,14 @@ export default {
   const langKey = ref<string>('');
 
   onMounted(()=>{
-    store.commit('setLoading',true);
+    store.commit('setLoading',true)
   })
   watch(() => router.currentRoute.value,(newValue: any) => {
         const {meta} = newValue;
+        // console.log('翻译key:',meta['key']);
         menuClass.value = meta['back'] ? true :  false;
         langKey.value = meta['key'] ? meta['key'] : '';
+        // store.PageLoading = true
     },
     { immediate: true }
   )

@@ -10,8 +10,10 @@ export default {
     import { vantLocales } from '@/lang'
     import { useI18n } from 'vue-i18n'
     import { useStore } from 'vuex'
+    import { useToken } from '@/common/useToken';
+    const { getToken, removeToken } = useToken();
     const $store = useStore();
-    const { locale , t} = useI18n();
+    const { locale , t } = useI18n();
     const props = defineProps(["silderflog"]);
     let $emit = defineEmits(["update:silderflog"]);
     const router = useRouter();
@@ -20,7 +22,7 @@ export default {
     // 用户信息
     const userStore = computed(()=>$store.state.userinfo);
     const loginStore = computed(()=>$store.state.login);
-    const oldsilder:any = computed(()=>$store.state.silderData);
+    const WebConfig = computed(()=>$store.state.webconfig);
     // 导航数据
     const silderData:any = reactive({data:[
         {title:t('silder.menu1'),url:'/'},
@@ -33,14 +35,15 @@ export default {
         {title:t('silder.menu4_1'),url:'/',child:[
             {title:t('silder.menu4_1'),url:'/options'},
             {title:t('silder.menu4_2'),url:'/options/trade'},
+            {title:t('silder.menu4_3'),url:'/options/opdetaile'},
         ]},
 		{title:t('silder.menu5'),url:'/officialActivity'},
 		{title:t('silder.menu6'),url:'/share'},
 		{title:t('silder.menu7'),url:'/about'},
         {title:t('silder.menu8'),url:'/',type:'add',child:[
             {title:t('silder.menu8_1'),url:'/proclamation'},
-            {title:t('silder.menu8_2'),url:oldsilder.value?oldsilder.value.white_paper:'javascript:void(0)',useAtag:true,},
-            {title:t('silder.menu8_3'),url:oldsilder.value?oldsilder.value.terms_of_service:'javascript:void(0)',useAtag:true,}
+            {title:t('silder.menu8_2'),url:WebConfig.value['white_paper'],useAtag:true,ukey:'white_paper'},
+            {title:t('silder.menu8_3'),url:WebConfig.value['terms_of_service'],useAtag:true,ukey:'online_kefu'}
         ]},
     ]})
     // username.replace(/(\w*)(\d{4})/, "$1****")
@@ -64,7 +67,6 @@ export default {
             activeNames.value = '0';
         }
     }
-
     const langShow = ref<boolean>(false);
     const langVal = ref<string>('');
     const langIndex = ref<number>(0);
@@ -77,20 +79,19 @@ export default {
         {text:'Русский',value:'rus',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAcCAYAAAAX4C3rAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF+mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOCAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIyLTA3LTEzVDE5OjIwOjI5KzA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMi0wNy0xM1QxOToyNTowMyswODowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMi0wNy0xM1QxOToyNTowMyswODowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo0MmIzNTFiMy04YzhiLTg0NDYtYTY4Mi02M2M2Mjk5NzIxMTUiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDoxZTA4YzQzZi02MTQ1LWMxNDQtODFmNC02N2Q2NTQ0MWFkNjUiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDplNjMxN2UwMC0xOTY5LTgwNGEtODcxYS0yYTBlMGE3ZDNiYWQiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmU2MzE3ZTAwLTE5NjktODA0YS04NzFhLTJhMGUwYTdkM2JhZCIgc3RFdnQ6d2hlbj0iMjAyMi0wNy0xM1QxOToyMDoyOSswODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTggKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo0MmIzNTFiMy04YzhiLTg0NDYtYTY4Mi02M2M2Mjk5NzIxMTUiIHN0RXZ0OndoZW49IjIwMjItMDctMTNUMTk6MjU6MDMrMDg6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE4IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz47xPu/AAAA0ElEQVRYCdXBsVEDMRRF0fu+ZC/jYcYEJGQUQAU0RCuElOVGIGEInDBe7UoPyvg6R7Y/7XH21hb3UcAiBVklug7HVYqr/I8JxGi3neRGu+3hPgrJuY8SYJGeFUwimEQwiWAS9e39wlbuyOzQb+j09OHffiSzU2lUns/gI6mpEUwimEQwiWASwSQq8QheSE0r9bVdWH0gs0Ub+n55cAyT2QhRf3SPZDKzRN0JRG4GgkkEkwiMyc44gE5+PWQqycnUCnwBZ4sFKAiRgTHQZVbg+genB1KhV/oUbwAAAABJRU5ErkJggg=='},
         {text:'Deutsch',value:'ger',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAcCAYAAAAX4C3rAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF+mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOCAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIyLTA3LTEzVDE5OjIwOjI5KzA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMi0wNy0xM1QxOToyMTo1NyswODowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMi0wNy0xM1QxOToyMTo1NyswODowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoxNzQ4NWYwMi00Y2U1LTAxNGYtOTI4Yy02MTk2MGI4NWM4ZDUiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDoyM2RiMjNiMi0zMGJlLTVkNDgtYTIyNi1jNzNhZTkyYWE0NDAiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDowZWRmMTRjNi02NzJjLTUwNDktODMzZS1lYWVmOTZlZTVkMzkiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjBlZGYxNGM2LTY3MmMtNTA0OS04MzNlLWVhZWY5NmVlNWQzOSIgc3RFdnQ6d2hlbj0iMjAyMi0wNy0xM1QxOToyMDoyOSswODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTggKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDoxNzQ4NWYwMi00Y2U1LTAxNGYtOTI4Yy02MTk2MGI4NWM4ZDUiIHN0RXZ0OndoZW49IjIwMjItMDctMTNUMTk6MjE6NTcrMDg6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE4IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz6tnAa0AAAAf0lEQVRYCdXBsRVBURRFwX3f3xJrSUi1oBOtyOV6FQoEBL77tOHMOMaYBLC7SSAhJISEkBASQkJ4ZiGBNySBR4oEPslgkUFCSAgJYZPBZV8k8HAtEri7NAnkTgQpIkgICSEhhEkCYSWB7z49ZrP0h+38ToHiP8xaWMemXjX4/gAUzRpg2xZWTQAAAABJRU5ErkJggg=='},
         {text:'español',value:'es',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAAB9UlEQVQ4jbWVzWtTQRTFf/Nm3iRp8tqIXw0WiiCi4qIuBDe6VkEE9/b/8G/QrVt3Lt24FtSNrqtYLILUFpTUaDSf7+XNh7yXEAiB8kLrWQ3M3Hvm3HPvjOjduOfdqI8oVTlu+GSAaFPxjiGCyvETMEQFpQYkXUQ5mjtwZIK4h3KJxiERsZ47cGSCLO/oSeR9miJUOLMZYJFhCtLh0hBrFSDmkhwGb1KE7+KxecYZOC3p9E/Q/1vhbKOJciNw+bWKw4FiFzCAnIQJsBLazVMcvDpDurdPfFrTeBiiSwOU9cVJ7Ny9gRB+d0Pk9xYnv30hOn+L+t2b/Op62k0NC1o1S5CVeAD1tTvEb6+z88FTizcRXx9Tq2xSX16HdC7HoZglkOAlDF4sU40SmlfO8Xx3B9l6SvIyJd6OYMFuFv4jfuqByJzPSvcA09lm+H6PrTc1locHXH10n2D1J0q/G3tWBDYzeW1i8kSLCOCT0tT3Hau3q1y4dI3yj9d83nCsLFnWzQKd5ECkz5a8Tw1CqWmbD9MIXY6RIZiwRln/odeqEFiLVklhAm9M9hZd9I4OgpXpRoDBTyQJDI4wHzyPyKezKDwdVKANjCyiNNseIp++8SojHK8yimzaCipILMqPWuQKkqRwYHEFXZS8vEGQ9BHl//AfxH3+ATugxR9BROg/AAAAAElFTkSuQmCC'},
-        // {text:'Italia',value:'ita',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAAAcElEQVQ4jWPk6XX7z4AB/jMwvH/K0OvbxJCq44Uhiww+7N7HcDshi4FNUpyBkZkZVfI/AwPLF1YMPWAJBpZ/DL85WBkYuTgxpFEAGxvDv3//GP79/8/A+B/TrUwYIlQGoxaMWjBqwagFoxZQDBgYGACuaBhtOESRRgAAAABJRU5ErkJggg=='},
-        // {text:'Nederlands',value:'nl',ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAAAX0lEQVQ4jWNcJ6Pxn4GGgImWhjPQwwKW///+YQhS1YKvzx5hCFITMD5Yvoamkcz4////0VSEFwyDfLD5wA0MQWoCRmbdapqmIhZpcX4MQapawMzEiCFITTDEUxEDAwMAFf8TPIcVfqoAAAAASUVORK5CYII='},
     ]
 
     // 清除缓存
     const handleReCache = () => {
-        window.localStorage.clear();
         window.sessionStorage.clear();
+        removeToken();
         document.cookie = "cookieName=; path=/;";
-        router.push('/');
         setTimeout(() => {
-            window.location.reload();
-        }, 500);
+            location.reload();
+        }, 200);
     }
+
+    // 切换语言
     const onSelectLanguage = (ev:any) =>{
         location.reload();
         let lang = ev.target.dataset.value;
@@ -103,10 +104,19 @@ export default {
         }, 500);
     }
 
+    // 关闭导航栏
     const onOutLogin = () => {
         $emit("update:silderflog",!props.silderflog);
         activeNames.value = '0';
     }
+
+    // 特殊跳转 白皮书，服务条款
+    const onBlank = (val:any) => {
+        if(WebConfig.value[val]){
+            window.open(WebConfig.value[val])
+        }
+    }
+
     onMounted(()=>{
         langVal.value = localStorage.getItem("language") || (navigator.language || 'en').toLocaleLowerCase().split('-')[0];
         langIndex.value = languageArr.map((item:any)=>item.value).indexOf(langVal.value);
@@ -140,7 +150,7 @@ export default {
                             <div class="user-avatar"><img src="../assets/silder/userava.png"></div>
                             <div>
                                 <div class="user-name">{{ userStore['address']? userStore['address'].replace(/^(.{4})(?:\w+)(.{4})$/,"$1****$2") : '' }}</div>
-                                <div class="user-id">Invite: {{ userStore['invite'] }} <van-icon color="#4366EA" name="brush-o" @click="()=>{onCopy('复制的文本')}" /></div>
+                                <div class="user-id">Invite: {{ userStore['id'] }} <van-icon color="#4366EA" name="brush-o"/></div>
                                 <div class="user-score">Credit Score:100</div>
                             </div>
                         </div>
@@ -150,13 +160,13 @@ export default {
                     <div class="sub-menu-list" v-for="(item,index) in silderData.data" :key="index">
                         <!-- excluding children -->
                         <van-row v-if="!item.child || !item.child.length" class="sub-menu-item">
-                            <a v-if="item.useAtag" :href="item.url" target="_blank">{{ item.title }}</a>
+                            <a v-if="item.useAtag" @click="()=>onBlank(item.ukey)" target="_blank">{{ item.title }}</a>
                             <router-link v-else :to="item.url">{{item.title}}</router-link>
                         </van-row>
                         <!-- Including children -->
                         <van-collapse-item v-else :title="item.title" title-class="sub-menu-coll">
                             <van-row v-for="(items,indexs) in item.child" :key="indexs" class="sub-menu-item" :class="{'items':items}">
-                                <a v-if="items.useAtag" :href="items.url" target="_blank">{{ items.title }}</a>
+                                <a v-if="items.useAtag" @click="()=>onBlank(items.ukey)" target="_blank">{{ items.title }}</a>
                                 <router-link v-else :to="items.url">{{items.title}}</router-link>
                             </van-row>
                         </van-collapse-item>
@@ -166,7 +176,6 @@ export default {
                 <!-- end -->
                 <div class="sun-menu-footer">
                     <div class="removeCookie" @click="handleReCache">{{$t('silder.clearcache')}}</div>
-
                     <!-- language -->
                     <div class="languagebox" @click="langShow = !langShow">
                         <div class="language-ico">

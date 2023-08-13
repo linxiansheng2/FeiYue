@@ -12,15 +12,23 @@
   import $api from '@/https'
   const $store = useStore();
   const loading = computed(()=>$store.state.loading);
+  const WebConfig = computed(()=>$store.state.webconfig);
+  var link:any = document.querySelector('link[rel*="icon"]');
 
-  // 获取网站配置
-  const getConfig = async () => {
-    const res = await $api.getfindConfigList();
-    if(res && res['code'] == 200 ){
-      var link:any = document.querySelector('link[rel*="icon"]');
-      link.href = res.data.h5_logo;
-      document.title = res.data.h5_title;
-      $store.commit('setSilderData',res.data)
+
+  const getConfig = async () =>{
+    if(WebConfig.value){
+      link.href = WebConfig.value.h5_logo;
+      document.title = WebConfig.value.h5_title;
+      return;
+    }
+    try {
+    const {data} = await $api.getfindConfigList();
+      link.href = data.h5_logo;
+      document.title = data.h5_title;
+      $store.commit('setWebconfig',data);
+    } catch (error) {
+      console.log(error);
     }
   }
 

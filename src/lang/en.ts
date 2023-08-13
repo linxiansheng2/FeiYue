@@ -4,10 +4,11 @@ export default {
     menu2:'My Assets',
     menu2_1:'Asset Center',
     menu3_1:'Mining',
-    menu3_2:'FAQ',
+    menu3_2:'how to play',
     menu3_3:'Profit record',
     menu4_1:'Options Trading',
     menu4_2:'Trade Order',
+    menu4_3:'how to play',
     menu5:'Official Activities',
     menu6:"Invite Friends",
     menu7:'About Us',
@@ -15,7 +16,9 @@ export default {
     menu8_1:'Platform bulletin',
     menu8_2:'White paper',
     menu8_3:'Terms of Service',
-    clearcache:'Clear Cache'
+    clearcache:'Clear Cache',
+    Pledge_records:'Pledge records',
+    Official_activities:'Official activities'
   },
   menu:{
     navAsset:'Asset Distribution',
@@ -25,7 +28,9 @@ export default {
     navAsset_History:'Financial records',
     navAsset_proclamation:'Platform bulletin',
     navAsset_proclamationdetails:'Article details',
-    Remittance_Records:'Remittance records'
+    Remittance_Records:'Remittance records',
+    how_to_play:'how to play',
+    how_to_play_details:'how to play'
   },
   home: {
       posterTitle: 'web3.0 innovative financial products',

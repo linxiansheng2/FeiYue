@@ -30,6 +30,7 @@ const Store:any = reactive({data:{
   rechargeNew:''
 }})
 
+const currentCZ = ref<boolean>(false);
 
 // 提现 Store
 const price = ref('');
@@ -68,6 +69,11 @@ const onUpdateBank = (value:string,key:string) => {
   }
 }
 
+// 当前钱包充值
+const onSubmitCZ = () => {
+  showToast('当前钱包充值')
+}
+
 // 复制
 const onCopy = (val:string) => {
   navigator.clipboard.writeText(val)
@@ -79,7 +85,7 @@ const onCopy = (val:string) => {
   })
   }
 
-
+  // 提交数据
   const onSubmit = async () => {
     let res;
     $store.commit('setLoading',true);
@@ -95,7 +101,6 @@ const onCopy = (val:string) => {
     }
     if(res){
       $store.commit('setLoading',false);
-      // showToast(res['msg']);
     }
     
   }
@@ -112,12 +117,14 @@ const onCopy = (val:string) => {
       }
     }
 
-    // 获取后端数据
     Promise.all(reqList)
-    .then(res=>{      
-      if(res.includes(undefined)) return
+    .then(res=>{
+      console.log(res);
+      if(res.includes(undefined)){return};
+      
       Store.data.txmoneyList = res[0].rows;
       if(res[1]){
+        currentCZ.value = String(res[1].data.Lname).toLocaleLowerCase().includes('erc20') ? true : false
         Store.data.czmoneyItem = res[1].data;
       }
       Store.data.loading = true;
@@ -171,6 +178,7 @@ const onCopy = (val:string) => {
             </van-cell-group>
           </div>
           <div class="order">我會得到{{ Store.data.recharge? Store.data.rechargeNew : '0.00' }} USDT</div>
+          <div class="recharge-btn" v-if="currentCZ"><van-button type="primary" size="normal" color="#2850E7" @click="onSubmitCZ">当前钱包充值</van-button></div>
         </div>
 
       </div>

@@ -10,7 +10,7 @@ const datas=reactive<any>({data:{}})
 const flag=ref<boolean>(false)
 const postabout=async()=>{
   const sbcxk=await api.postabout()
-  console.log(sbcxk,'sb');
+  // console.log(sbcxk,'sb');
   if(sbcxk.code==200){
     datas.data=sbcxk
     flag.value=true;
@@ -109,17 +109,18 @@ onMounted(()=>{
     </div> -->
     <div class="about_top">
       <!-- <img class="about_img" :src=datas.data.data1.img  alt=""> -->
-          <div v-html="datas.data.data1.body"></div>
+          <div class="shaniao" v-html="datas.data.data1.body"></div>
 
         
     </div>
-    <!-- <div class="bottoma">
-        <p class="bottomp">Copyright © 2023 LOGOIPSUM002 版權所有</p>
-    </div> -->
+  
   </div>
 </template>
 
 <style scoped lang="less">
+:deep(.shaniao img){
+    width: 100%;
+}
 .about_top {
   padding: 0 19px;
   // margin-top: px;

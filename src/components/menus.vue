@@ -4,14 +4,17 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive ,computed,onMounted} from 'vue'
+import { ref, computed} from 'vue'
 import { useRouter} from 'vue-router';
 import mtcContract from "@/common/1.json";
 import f from "@/common/feiyueweb3.js";
 import api  from '../https';
 import {useStore} from 'vuex'
 import { showToast } from 'vant';
+import { useToken } from '@/common/useToken';
+const { setToken, getToken, removeToken } = useToken();
 const $store = useStore();
+const router = useRouter();
 let props = defineProps(["silderflog"]);
 let $emit = defineEmits(["update:silderflog"]);
 
@@ -22,14 +25,10 @@ const loginStore = computed(()=>$store.state.login);
 //侧栏回调
 const onChange = () => {
     $emit("update:silderflog",!props.silderflog);
-    // let navbox = document.querySelector('#nav-wrap');
-    // console.log(navbox);
 }
 
 // 初始化
-const chushihua = async (ev:Event) =>{
-    console.log(loginStore.value);
-    
+const chushihua = async () =>{
     if(loginStore.value){
         return
     }else{
@@ -43,12 +42,12 @@ const chushihua = async (ev:Event) =>{
     }
 
 }
-    // 登录
+// 登录
 const logins = async (address:any) =>{
     const res = await api.logins(address);
     if(res && res['code'] == 200){
         showToast(`success Money:${res.data1.money}`)
-        sessionStorage.setItem("token", res.data1.token);
+        setToken(res.data1.token)
         $store.commit('setUserInfo',res.data1);
         $store.commit('setLogin',true);
     }else{
@@ -114,6 +113,7 @@ const logins = async (address:any) =>{
             height: 24px;
             -webkit-animation: scalelogo 1.5s 0s ease both infinite;
             -moz-animation: scalelogo 1.5s 0s ease both infinite;
+            animation: scalelogo 1.5s 0s ease both infinite;
         }
     }
     .nav-right{

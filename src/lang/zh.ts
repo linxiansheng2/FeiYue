@@ -4,10 +4,11 @@ export default {
     menu2:'我的資產',
     menu2_1:'資產中心',
     menu3_1:'挖礦',
-    menu3_2:'常見問題',
+    menu3_2:'玩法说明',
     menu3_3:'盈利統計',
     menu4_1:'期權交易',
     menu4_2:'交易訂單',
+    menu4_3:'玩法说明',
     menu5:'官方活動',
     menu6:"邀請好友",
     menu7:'關於我們',
@@ -25,7 +26,11 @@ export default {
     navAsset_History:'財務記錄',
     navAsset_proclamation:'平臺公告',
     navAsset_proclamationdetails:'公告詳情',
-    Remittance_Records:'返佣记录'
+    Remittance_Records:'返佣记录',
+    Pledge_records:"質押記錄",
+    Official_activities:'官方活動',
+    how_to_play:'玩法说明',
+    how_to_play_details:'玩法說明'
   },
   home: {
       posterTitle: 'web3.0創新金融產品',

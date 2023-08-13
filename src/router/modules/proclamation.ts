@@ -7,13 +7,13 @@ export default {
         {   path: 'index',
             name: 'proclamation_index',
             component: () => import('../../views/proclamation/index.vue'),
-            meta: {title: '平台公告',back:true,key:'menu.navAsset_proclamation'}
+            meta: {title: '平台公告',back:true,key:'menu.navAsset_proclamation',requiresAuth: true}
         },
         {
             path: 'articleDetails/:id',
             component: () => import('../../views/proclamation/articleDetails.vue'),
             name: 'proclamation_articleDetails',
-            meta: {title: '文章详情',back:true,key:'menu.navAsset_proclamationdetails'}
+            meta: {title: '文章详情',back:true,key:'menu.navAsset_proclamationdetails',requiresAuth: true}
         },
     ]
 }

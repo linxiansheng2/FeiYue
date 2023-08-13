@@ -17,12 +17,12 @@ const bankhuiyuan = [
 const cxkindex = ref<any>(0);
 // const shaniaocxk=ref<any>('')
 const onchangse = (ev: any) => {
-  console.log(ev);
-  console.log(cxkindex, "id");
+  // console.log(ev);
+  // console.log(cxkindex, "id");
 
   cxkindex.value = ev;
   flogs.value = false;
-  console.log(cxkindex.value,'aaa');
+  // console.log(cxkindex.value,'aaa');
 };
 const xianshia = () => {
   flogs.value = true;
@@ -37,7 +37,7 @@ const banklianghua = [
 ];
 const onchangses = (ev: any) => {
   sbindex.value = ev;
-  console.log(sbindex.value,'下标');
+  // console.log(sbindex.value,'下标');
   
   flags.value = false;
 };
@@ -49,7 +49,7 @@ const datas = reactive<any>({ data: [] });
 const flagxianshi = ref<boolean>(true);
 const postloser = async (type:any,index: any, pageSize: any) => {
   const data = await api.postloser(type,index, pageSize);
-  console.log(data, "邀请记录");
+  // console.log(data, "邀请记录");
   if (data.code == 200) {
     datas.data = data.rows;
     datas.data.forEach((item:any)=>{
@@ -63,7 +63,7 @@ const postloser = async (type:any,index: any, pageSize: any) => {
 const cxkdatas=reactive<any>({data:[]})
 const posttelist = async (type: any, pageNum: any, pageSize: any) => {
   const res = await api.posttelist(type, pageNum, pageSize);
-  console.log(res, "//下级返佣记录接口");
+  // console.log(res, "//下级返佣记录接口");
   if(res.code==200){
         cxkdatas.data=res.rows
         cxkdatas.data.forEach((item:any)=>{
@@ -76,7 +76,7 @@ const posttelist = async (type: any, pageNum: any, pageSize: any) => {
 //查询
 const chaxun=async()=>{
       const res=await api.postloser(cxkindex.value,1,10)
-      console.log(res,'查询');
+      // console.log(res,'查询');
      if(res.code==200){
       datas.data=res.rows
       datas.data.forEach((item:any)=>{
@@ -97,7 +97,7 @@ const fanyong=()=>{
 //翻涌查询
 const chaxuna=async()=>{
     const resdata=await api.posttelist(sbindex.value,1,10)
-    console.log(resdata,'');
+    // console.log(resdata,'');
     if(resdata.code==200){
       cxkdatas.data=resdata.rows
         cxkdatas.data.forEach((item:any)=>{

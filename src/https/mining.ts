@@ -62,5 +62,23 @@ export default {
     //获取链上usdt余额
     getlxmoney(){
         return instance.get('api/clien/tool.php/LXmoney')
+    },
+    //质押挖矿玩法说明
+    gethottopay(Type:any,pageNum:any=1,pageSize:any=10){
+        return instance.post('api/public/howtoplay.php/list',{
+            Type,
+            pageNum,
+            pageSize
+        })
+    },
+    //玩法说明详情接口
+    gethotxiangqing(id:any){
+        return instance.post('api/public/howtoplay.php/get',{
+            id
+        })
+    },
+    //非质押挖矿授权
+    getzysubmit(){
+        return instance.post('api/clien/zySubmitOrder.php/FZY')
     }
 }

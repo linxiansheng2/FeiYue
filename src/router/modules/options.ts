@@ -16,5 +16,17 @@ export default {
             name: 'options_trade',
             meta: {title: '交易訂單',back:true,key:'silder.menu4_2'},
         },
+        {
+            path: 'opdetaile',
+            component: () => import('../../views/options/opdetaile.vue'),
+            name: 'options_opdetaile',
+            meta: {title: '玩法说明',back:true,key:'silder.menu4_3'},
+        },
+        {
+            path: 'details/:id',
+            component: () => import('../../views/options/details.vue'),
+            name: 'options_details',
+            meta: {title: '玩法说明',back:true,key:'menu.how_to_play_details'},
+        }
     ]
 }

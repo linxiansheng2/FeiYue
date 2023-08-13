@@ -6,6 +6,6 @@ export default {
     meta: { 
         title: '首页',
         index:'1',
-        islogin:true
+        requiresAuth: true
     },
 }

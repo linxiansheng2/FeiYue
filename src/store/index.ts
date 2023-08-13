@@ -1,23 +1,27 @@
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate';
-
+import $api from '@/https'
 export default createStore({
   state: {
     loading:true,   //全局加载动画
     login:false,    //登录状态
     userinfo:{},    //用户信息
     useLoading:true,//启用加载动画
-    silderData:""
+    webconfig:"",
   },
   getters: {
     getUseloading(state){
       return state.useLoading;
-    }
+    },
+    getUserinfo(state){
+      return state.userinfo;
+    },
   },
   mutations: {
     setLoading(state,params){
       state.loading = params
     },
+    // 更新登录状态
     setLogin(state,params){
       state.login = params
     },
@@ -27,8 +31,8 @@ export default createStore({
     setUseLoading(state,params){
       state.useLoading = params;
     },
-    setSilderData(state,params){
-      state.silderData = params;
+    setWebconfig(state,params){
+      state.webconfig = params
     }
   },
   actions: {
@@ -44,7 +48,7 @@ export default createStore({
           return {
             login:val.login,
             userinfo:val.userinfo,
-            silderData:val.silderData
+            webconfig:val.webconfig
           }
         }
     })

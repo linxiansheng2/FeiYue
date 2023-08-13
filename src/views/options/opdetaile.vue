@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'index',
+  name: 'opdetaile',
 }
 </script>
 <script setup lang="ts">
@@ -16,7 +16,7 @@ const Store:any = reactive({data:{
 //获取
 const onLoad = async () => {
     let res:any,total:any;
-    res = await $api.getactivity(0);
+    res = await $api.gethottopay(1);
     // console.log(res);
     
     if(res && res['code'] == 200){
@@ -44,7 +44,7 @@ const onLoad = async () => {
             finished-text="没有更多了"
             @load="onLoad"
             >
-            <van-cell class="bulletin-cell" v-for="item in Store.data.bulletinList" :key="item.id" :to="`/officialActivity/detaile/${item.id}`">
+            <van-cell class="bulletin-cell" v-for="item in Store.data.bulletinList" :key="item.id" :to="`/options/details/${item.id}`">
               
             <template #title>
               <div><img class="sbcxkaaa" :src=item.img alt=""></div>

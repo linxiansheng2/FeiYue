@@ -72,7 +72,7 @@ const xiaji = reactive<any>({ data: {} });
 const xiajiflag = ref<any>(false);
 const onChangeMoney = async (key: number) => {
   // Store.data.flog = Store.data.active == key + 2 ? !Store.data.flog : true;
-  console.log(key, "key");
+  // console.log(key, "key");
 
   if (Store.data.active == key) {
     Store.data.flog = !Store.data.flog;
@@ -81,27 +81,27 @@ const onChangeMoney = async (key: number) => {
   }
   Store.data.flog = true;
   Store.data.active = key;
-  console.log(Store.data);
+  // console.log(Store.data);
 
   // if(Store.data.flog==true){
 
   // }
   const rescxk = await api.postsubordinate(key, 0);
-  console.log(rescxk, "下级收益");
+  // console.log(rescxk, "下级收益");
   if (rescxk.code == 200) {
     xiaji.data = rescxk.rows;
-    console.log(xiaji, "xiaji");
+    // console.log(xiaji, "xiaji");
     xiajiflag.value = true;
   }
 };
 
 const jiajian = async (ev: any) => {
-  console.log("sbcxn");
+  // console.log("sbcxn");
 
   bian.value = false;
-  console.log(ev, "11");
+  // console.log(ev, "11");
   const cdaer = await api.postsubordinate(ev, 0);
-  console.log(cdaer, "第一收益");
+  // console.log(cdaer, "第一收益");
 };
 
 // 质押
@@ -122,7 +122,7 @@ const getlogin = async () => {
     datacxk = ress;
     flags.value = true;
   }
-  console.log(datacxk, "账户信息");
+  // console.log(datacxk, "账户信息");
 };
 
 const navIndex = ref<number>(0);
@@ -135,7 +135,7 @@ const navArray = [
 
 const onChangeNav = (_ev: any) => {
   const { dataset } = _ev.target;
-  console.log(dataset);
+  // console.log(dataset);
 
   navIndex.value = Number(dataset.index);
   postrecorded(Number(dataset.index), (currentPage.value = 1));
@@ -147,11 +147,11 @@ let stata = reactive<any>({});
 const flagss = ref<boolean>(false);
 const getHomeStatistical = async () => {
   const datas: any = await api.getHomeStatistical();
-  console.log(datas, "sbcxk");
+  // console.log(datas, "sbcxk");
   if (datas.code == 200) {
     stata = datas;
     flagss.value = true;
-    console.log(stata, "stata");
+    // console.log(stata, "stata");
   }
 };
 
@@ -160,7 +160,7 @@ const duixiana = async () => {
   // value.value=datacxk.data1.zeth_KJH
   // console.log(datacxk.data1.zeth_KJH,'sbcxka');
   const cxk: any = await api.postexchange(value.value);
-  console.log("cxk", cxk);
+  // console.log("cxk", cxk);
   if (cxk.code != 400) {
     showToast(cxk.msg);
   }
@@ -173,7 +173,7 @@ const duihuan = async () => {
 //确认数量
 const querena = async () => {
   const sbcxk: any = await api.postreflect(valuetie.value);
-  console.log("sbcxk", sbcxk);
+  // console.log("sbcxk", sbcxk);
 
   // if(sbcxk.code!=400){
   //   showToast(sbcxk.msg);
@@ -190,7 +190,7 @@ const querensl = () => {
 let kcshuju = reactive<any>({ data: {} });
 const getkcshuju = async () => {
   const ress: any = await api.getkcshuju();
-  console.log(ress, "矿池数据");
+  // console.log(ress, "矿池数据");
   // kcshuju.data=ress
   if (ress.code == 200) {
     for (let key in ress) {
@@ -213,7 +213,7 @@ const zongshu = ref<number>(0);
 
 const flagsss = ref<boolean>(false);
 const change = (ev: any) => {
-  console.log(ev, "翻页", currentPage.value);
+  // console.log(ev, "翻页", currentPage.value);
   // currentPage.value=ev
   // dongasb.value=ev
   postrecorded(navIndex.value, ev);
@@ -221,7 +221,7 @@ const change = (ev: any) => {
 const postrecorded = async (index: number, page: any) => {
   // page=currentPage.value
   const sbaa: any = await api.postrecorded(index, page);
-  console.log(sbaa, "shuju1");
+  // console.log(sbaa, "shuju1");
   if (sbaa.code == 200) {
     zongshu.value = sbaa.total;
     datalist.data = sbaa.rows;
@@ -238,14 +238,18 @@ const onClickTabs = (active: any) => {
 };
 //质押套餐列表接口：
 let zytaocan = reactive<any>({ data: {} });
+const nozhiya=ref<any>(0)
 const getzycombo = async () => {
   const cxkdata: any = await api.getzycombo();
-  // console.log();
-
+  // console.log(cxkdata,'质押套餐列表1');
+  nozhiya.value=cxkdata.total
+  // console.log(nozhiya.value,'sbnozhiya');
+  
   zytaocan.data = cxkdata.rows;
-  console.log(zytaocan.data, "质押套餐列表");
+  // console.log(zytaocan.data, "质押套餐列表");
   zytaocan.data.map((i: any) => {
     i.value1 = "";
+    
   });
 };
 //购买套餐
@@ -263,8 +267,8 @@ const gobuy = async (ev: any) => {
   //   amount:ev.id
   // }
   // const requestPayload = JSON.stringify(ceshia).slice(1, -1)
-  console.log(ev, "传上来的");
-  console.log(ev.value1, ev.id, "sss");
+  // console.log(ev, "传上来的");
+  // console.log(ev.value1, ev.id, "sss");
   const buy: any = await api.postgobuy(ev.id, Number(ev.value1));
   if (buy.code != 400) {
     showToast(buy.msg);
@@ -276,7 +280,7 @@ const shuaxinmoney = async () => {
     return;
   } else {
     const res = await api.getlxmoney();
-    console.log(res, "是否为2 3");
+    // console.log(res, "是否为2 3");
     datacxk.data1.usdt_LX = res.Money;
   }
 };
@@ -288,14 +292,20 @@ const zhiyajilu = () => {
 let gundong = reactive<any>({ data: {} });
 const gundonga = async () => {
   const scxs: any = await api.getshouyia();
-  console.log(scxs, "滚动收益");
+  // console.log(scxs, "滚动收益");
   gundong.data = scxs.data;
 };
+
+const getzysubmit=async()=>{
+  const submitzy=await api.getzysubmit()
+  console.log(submitzy,'ssss');
+  
+}
 
 //获取链上usdt余额
 
 onMounted(() => {
-  getlogin(), getHomeStatistical(), getkcshuju(), getzycombo(), gundonga();
+  getlogin(); getHomeStatistical(); getkcshuju(); getzycombo();gundonga();
 });
 </script>
 
@@ -324,7 +334,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="middle_shuju">
-        <div class="middle_qiehuana">
+        <div class="middle_qiehuana" v-if="nozhiya.value!=0">
           <span
             class="middle_feizhiya"
             :class="{ middle_zhiya: flagxianshi }"
@@ -407,7 +417,7 @@ onMounted(() => {
           <span class="middleshou_cxk">即将收益</span>
           <span class="middleshou_cxk">00:00:00</span>
         </div>
-        <div class="contetnetf">
+        <div class="contetnetf" @click="getzysubmit()">
           <span> 參與挖礦 </span>
         </div>
       </div>

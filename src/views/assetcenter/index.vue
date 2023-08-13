@@ -34,6 +34,7 @@ const onChangeSize = async (pageSize:number,index:number) => {
     let {current} = Store.data;
     if(current == index) return;
     Store.data.current = index;
+    categoryData.value = [];
     getLossstatistics(pageSize);
 }
 
@@ -45,9 +46,6 @@ var myChart:any;
 
 // 绘制图表
 const setEchartOption = () => {
-  if(!myChart){
-    myChart = echarts.init(document.getElementById('Lossstatistics'));
-  }
   option = {
     title: [
       {
@@ -155,6 +153,7 @@ const getLossstatistics = async (pageSize:number = 7,type:number = 0) => {
 }
 
 onMounted(()=>{
+  myChart = echarts.init(document.getElementById('Lossstatistics'))!;
   getMoney();
   getLossstatistics();
 })

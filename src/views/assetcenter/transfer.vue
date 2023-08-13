@@ -50,6 +50,7 @@ const onChangeName = (event:any) => {
       Store.data.formSelect = false;
       Store.data.fromIndex = index;
       subParams.data.from_user = Store.data.transferList[index].value;
+      subParams.data.money = ''
       break;
     case 'to':
       Store.data.toSelect = false;
@@ -59,7 +60,6 @@ const onChangeName = (event:any) => {
     default:
       return;
   }
-  subParams.data.money = ''
 }
 
 // 转换
@@ -72,38 +72,47 @@ const onSubmit = async () => {
     const res = await $api.getUsermoney(subParams.data);
     if(res){
       showToast(res['msg']);
-      res['code'] == 200 && onChangePage(1);
+      if(res['code'] == 200){
+        getMoney();
+        onChangePage(1);
+      }
     }
   }
-  
 }
 
+// 查询金额
+const getMoney = async () => {
+  const res = await $api.getMoney('all');
+  if(res && res['code'] == 200){
+
+    console.log(res);
+    
+    Store.data.transferList.forEach((item:any)=>{
+      if(res[item.type]){
+        item.num = res[item.type]
+      }
+    })
+  }
+  Store.data.loading = true;
+}
+
+// 翻页
 const onChangePage = async (_ev:any) => {
   $store.commit('setUseLoading',false);
-  const res = await $api.getUserTransferlist(_ev,Store.data.pageSize)
+  const res = await $api.getUserTransferlist(_ev,Store.data.pageSize);
+  console.log(res);
+  
+  Store.data.count = parseInt(String((res['total'] + Store.data.pageSize -1 ) / Store.data.pageSize));
   Store.data.swapList = res['rows'];
 }
 
-let requestArr = [$api.getMoney('all'),$api.getUserTransferlist(Store.data.pageNum,Store.data.pageSize)]
 onMounted(()=>{
-    Promise.all(requestArr)
-    .then((res:any[])=>{
-      Store.data.transferList.forEach((item:any)=>{
-        if(res[0][item.type] && !res.includes(undefined)){
-          item.num = res[0][item.type]
-        }
-      })
-      Store.data.swapList = res[1]['rows'];
-      Store.data.count = parseInt(String((res[1]['total'] + Store.data.pageSize -1 ) / Store.data.pageSize)) ;
-      Store.data.loading = true;
-    })
-    .catch((err)=>{
-      console.log(err);
-    })
+  getMoney();
+  onChangePage(1);
 })
 
 onUnmounted(()=>{
-  $store.commit('setUseLoading',false);
+  $store.commit('setUseLoading',true);
 })
 </script>
 
@@ -164,6 +173,7 @@ onUnmounted(()=>{
               </div>
             </div>
         </div>
+
         <!-- <div class="transfer-wrap">
           <div class="transfer-col">
             <img class="transfer-img" :src="getAssetURL('assetcenter/kyye.png')" alt="depositico1">

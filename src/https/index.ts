@@ -6,6 +6,9 @@ import options from "./options"
 import pledgerecord from "./pledgerecord"
 import share from "./share"
 import guidance from "./guidance"
+import profitrecord from "./profitrecord"
+import about from "./about"
+import officialactivity from "./officialactivity"
 // 登录验证
 const globalAxios = {
 	logins(address:any,ycode ? : number) {
@@ -17,4 +20,4 @@ const globalAxios = {
 }
 
 // 导出api对象
-export default Object.assign(globalAxios,home,assetcenter,mining,options,pledgerecord,share,guidance)
+export default Object.assign(globalAxios,home,assetcenter,mining,options,pledgerecord,share,guidance,profitrecord,about,officialactivity)

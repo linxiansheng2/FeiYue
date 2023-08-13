@@ -20,13 +20,13 @@ export default {
   onMounted(()=>{
     Promise.all(requestArr)
     .then((res:any[])=>{
-      // console.log('数据',res);
+      if(res.includes(undefined)){return};
       Store.data.banner = res[0].rows;
       Store.data.Usermoneylist = res[1].rows;
       loading.value = true;
     })
     .catch((err)=>{
-      console.log(err);
+      console.log('err',err);
     })
   })
 

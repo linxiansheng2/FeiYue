@@ -1,3 +1,4 @@
+import { useToken } from '@/common/useToken';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 const instance:AxiosInstance = axios.create({
   baseURL: 'https://www1.feiyueadmin.com/',
@@ -6,6 +7,9 @@ const instance:AxiosInstance = axios.create({
 
 import store from "@/store";
 import { showToast } from "vant";
+
+const { setToken, getToken, removeToken } = useToken();
+
 const langArray:any = {
   'zh':0,   //繁体中文
   'en':1,   //英语
@@ -25,7 +29,7 @@ instance.interceptors.request.use((config:any):any  => {
   // 获取浏览器语言或上一次记录的语言
   const Languagetype:string = window.localStorage.getItem('language') || (navigator.language || 'en').toLocaleLowerCase().split('-')[0] || 'zh';
   // 获取token
-  config.headers['Authorization'] = sessionStorage.getItem("token");
+  config.headers['Authorization'] = getToken().value;
   config.headers['Languagetype'] = langArray[Languagetype];
   // 允许启用全局加载动画
   if(store.getters.getUseloading){
@@ -60,7 +64,13 @@ instance.interceptors.response.use((response:AxiosResponse) => {
     }
     msg && showToast(msg);
     if(code == 5001){
-      sessionStorage.removeItem('vuex')
+      window.sessionStorage.clear();
+      document.cookie = "cookieName=; path=/;";
+      setTimeout(() => {
+          window.location.reload();
+      }, 200);
+      location.replace("/home");
+      return 
     }
   }
 

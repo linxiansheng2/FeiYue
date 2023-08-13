@@ -9,24 +9,12 @@ import api from "../../https";
 import dayjs from "dayjs";
 import * as echarts from "echarts";
 type EChartsOption = echarts.EChartsOption;
-var chartDom, myChart: any;
 var option: EChartsOption;
-const loading = ref<boolean>(false);
 
-const postyl = async () => {
-  const datas = await api.postyk();
-  console.log(datas, "scxk");
-};
 //挖矿登陆数据
 const state = reactive<any>({ data: {} });
-const getlogin = async () => {
-  const sbcxk = await api.getlogin();
-  console.log(sbcxk, "sbcxk");
-  if (sbcxk.code == 200) {
-    state.data = sbcxk.data1;
-  }
-};
 
+// 金额
 const Store: any = reactive({
   data: {
     todayProfit: 0, //当日盈亏usdt
@@ -36,51 +24,72 @@ const Store: any = reactive({
   },
 });
 
+const getlogin = async () => {
+  const sbcxk = await api.getlogin();
+  if (sbcxk && sbcxk['code'] == 200) {
+    state.data = sbcxk.data1;
+  }
+};
+
+// 获取金额
+const getMoney = async () => {
+  const res = await api.getMoney('all');
+  if(res && res['code'] == 200){
+    Store.data.todayProfit = res['todayProfit'];
+    Store.data.totalUsdt = res['totalUsdt'];
+    getLossstatistics();
+  }
+}
+
+// 获取收益数据
+const getLossstatistics = async (pageSize:number = 7,type:number = 2) => {
+  const res = await api.getLossstatistics(pageSize,type);
+  if(res && res['code'] == 200){
+    let indexmoney = Store.data.totalUsdt;
+    for (let i = 0; i < res.data.length; i++) {
+      categoryData.value.unshift(dayjs.unix(res.data[i].time).format('MM-D'))
+      values.value.unshift(res.data[i].profit);
+      // 计算每日增长百分比
+      if(res.data[i].profit == 0){increaseVal.value.unshift(0)}
+      else{
+        increaseVal.value.unshift(((res.data[i].profit / indexmoney) * 100).toFixed(10))
+      }
+    }
+    setTimeout(() => {
+      setEchartOption();
+      setEchartOption('zz');
+    }, 200);
+  }
+}
+
 // 日期切换
 const onChangeSize = async (pageSize: number, index: number) => {
   let { current } = Store.data;
   if (current == index) return;
   Store.data.current = index;
-  // const res = await api.getLossstatistics(pageSize, 2);
-  // console.log(res,'sbres');
-  
-  // if (res["code"] == 200) {
-  //   setEchartOption(res.data);
-  // }
+  categoryData.value = []
   getLossstatistics(pageSize);
 };
+
+
 // 图表日期
+var myChart:any,increase:any;
 const categoryData = ref<any>([]);
+// 收益
 const values = ref<any>([]);
+// 百分比
+const increaseVal = ref<any[]>([]);
 
-var myChart:any;
-// 格式化K线数据
-// const splitData = (rawData: any[]) => {
-//   let values = [];
-//   let categoryData = [];
-//   for (let i = 0; i < rawData.length; i++) {
-//     categoryData.unshift(dayjs.unix(rawData[i].time).format("MM-D"));
-//     values.unshift(rawData[i].profit);
-//   }
-//   return {
-//     categoryData,
-//     values,
-//   };
-// };
-
-const setEchartOption = () => {
-  
-  // 如果存在Echart，则不进行初始化
-  if (!myChart) {
-    myChart = echarts.init(document.getElementById('Lossstatistics'));
-  }
-
+// 渲染图表
+const setEchartOption = (type:string = 'sy') => {
+  let text = type == 'sy' ? `Total Profit: ${Store.data.todayProfit} USDT` : '';
+  let data = type == 'sy' ? values.value : increaseVal.value;
   option = {
     title: [
       {
         left: "left",
         top: "5%",
-        text: `Total profit: ${Store.data.todayProfit} USDT`,
+        text,
         textStyle: {
           color: "#5AD0B6",
           fontSize: "14px",
@@ -88,24 +97,13 @@ const setEchartOption = () => {
       },
     ],
     tooltip: {
-      show: true,
-      trigger: "axis", // 触发类型，默认数据触发，见下图，可选为：'item' ¦ 'axis'
-      showDelay: 20, // 显示延迟，添加显示延迟可以避免频繁切换，单位ms
-      hideDelay: 100, // 隐藏延迟，单位ms
-      transitionDuration: 0.4, // 动画变换时间，单位s
-      borderColor: "#333", // 提示边框颜色
-      borderRadius: 4, // 提示边框圆角，单位px，默认为4
-      borderWidth: 0, // 提示边框线宽，单位px，默认为0（无边框）
-      padding: 10, // 提示内边距，单位px，默认各方向内边距为5，
+      trigger: 'axis',
     },
     xAxis: [
       {
         type: "category",
         data: categoryData.value,
         boundaryGap: false, // 两遍留白
-        axisLine: { show: true }, //轴线
-        axisLabel: { show: true }, // 轴刻度
-        axisTick: { show: true },
       },
     ],
     yAxis: [
@@ -115,90 +113,51 @@ const setEchartOption = () => {
         min: "dataMin", //取最小值为最小刻度
         max: "dataMax", //取最大值为最大刻度
         axisLine: { show: false },
-        splitLine: { show: true },
         axisTick: { show: false },
         axisLabel: {
-          formatter: "{value}\n",
-          show: true,
+          formatter: type == 'sy' ? "{value}\n" : "{value}%",
         },
       },
     ],
     dataZoom: [
       {
         type: "inside",
-        xAxisIndex: [0, 1],
         start: 1,
         end: 100,
       },
     ],
-    grid: [
-      {
-        height: 150,
+    grid: [{
+        left: '15%',
+        right: '15%',
+        height: 150
       },
     ],
     series: [
       {
-        name: "Profit",
-        type: "line",
-        data: values.value,
-        smooth: true, //变得圆滑
+        name: type == 'sy' ? "Profit": "Percentages",
+        type: type == 'sy'? "line" : "bar",
+        data,
         showSymbol: false, //取消圆点
         lineStyle: { width: 1 },
       },
     ],
   };
-  option && myChart.setOption(option);
-  window.addEventListener('resize', () => { myChart.resize()})
+  if(type == 'sy'){
+    myChart.setOption(option);
+  }else{
+    increase.setOption(option);
+  }
+  window.addEventListener('resize', () => { 
+    myChart.resize();
+    increase.resize();
+  })
 };
-// 获取金额
-const getMoney = async () => {
-  const res = await api.getMoney('all');
-  if(res && res['code'] == 200){
-    
-    Store.data.todayProfit = res['todayProfit'];
-    Store.data.totalUsdt = res['totalUsdt'];
-  }
-}
-// 获取收益数据
-const getLossstatistics = async (pageSize:number = 7,type:number = 2) => {
-  const res = await api.getLossstatistics(pageSize,type);
-  if(res && res['code'] == 200){
-    for (let i = 0; i < res.data.length; i++) {
-      categoryData.value.unshift(dayjs.unix(res.data[i].time).format('MM-D'))
-      values.value.unshift(res.data[i].profit);
-    }
-    setEchartOption();
-  }
-}
-
-//let requestArr = [api.getMoney("all"), api.getLossstatistics(7, 0)];
-// onMounted(() => {
-  
-//   Promise.all(requestArr)
-//     .then((res: any[]) => {
-//       console.log("数据", res);
-//       if (res && res.length) {
-//         if (res[0].code != 200) {
-//           // showToast(res[0].msg)
-//           return;
-//         }
-//         Store.data.todayProfit = res[0]["todayProfit"];
-//         Store.data.totalUsdt = res[0]["totalUsdt"];
-//         setTimeout(() => {
-//           setEchartOption(res[1].data);
-//         }, 200);
-//       }
-//       loading.value = true;
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-    
-// });
 
 onMounted(() => {
-  getlogin(), postyl() ,getMoney(),
-  getLossstatistics();
+  myChart = echarts.init(document.getElementById('Lossstatistics'))!;
+  increase = echarts.init(document.getElementById('shujuboxa'))!;
+  getlogin();
+  getMoney();
 });
 </script>
 
@@ -227,17 +186,9 @@ onMounted(() => {
     <div class="bottom">
       <div class="bottombox">
         <div class="meiribox">每日收益(ETH)</div>
+
         <div class="wabox">
           <div class="waox_ico">挖礦收益</div>
-          <div class="shujuboxa"></div>
-        </div>
-      </div>
-    </div>
-    <div class="bottom">
-      <div class="bottombox">
-        <div class="wabox">
-          <div class="waox_ico">增長百分比</div>
-         
           <div class="page-main">
             <div class="cus-tab-content layout">
               <div class="tabaccount-list">
@@ -271,34 +222,28 @@ onMounted(() => {
               </div>
               <div class="Lossstatistics_wrap layout">
                 <div class="time_tab">
-                  <div
-                    :class="{ current: Store.data.current == 0 }"
-                    @click="
-                      () => {
-                        onChangeSize(7, 0);
-                      }
-                    "
-                  >
-                    7 days
-                  </div>
-                  <div
-                    :class="{ current: Store.data.current == 1 }"
-                    @click="
-                      () => {
-                        onChangeSize(30, 1);
-                      }
-                    "
-                  >
-                    30 days
-                  </div>
+                  <div :class="{ current: Store.data.current == 0 }" @click="() => {onChangeSize(7, 0)}">7 days</div>
+                  <div :class="{ current: Store.data.current == 1 }" @click="() => {onChangeSize(30, 1)}">30 days</div>
                 </div>
-                <div id="Lossstatistics" ref="EchartDom"></div>
+                <div id="Lossstatistics"></div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="wabox">
+          <div class="waox_ico">增長百分比</div>
+          <div class="shujuboxa" id="shujuboxa" :style="{'height':'260px'}"></div>
+        </div>
+
       </div>
     </div>
+    <div class="bottom">
+      <div class="bottombox">
+        
+      </div>
+    </div>
+    
   </div>
 </template>
 
@@ -353,7 +298,7 @@ body {
 }
 .bottom {
   background: #f3f6fb;
-  padding: 0px 15px;
+  padding: 0px 15px 15px;
 }
 .bottombox {
   margin-bottom: 10px;
@@ -370,6 +315,7 @@ body {
   border-radius: 5px;
   background: #fff;
   padding: 5px;
+  margin-bottom: 10px;
 }
 .waox_ico {
   min-height: 40px;
@@ -391,10 +337,7 @@ body {
 }
 .shujuboxa {
   width: 100%;
-  height: 260px;
   user-select: none;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  border-bottom: 1px solid #9f9a9a;
 }
 
 // 隔开
@@ -413,14 +356,6 @@ body {
   --van-tabs-nav-background: transparent;
   --van-padding-xs: 0;
   --van-tabs-line-height: 20px;
-  // padding: 0 15px;
-  // .title {
-  //   margin: 10px;
-  // }
-  .layout {
-    // margin-top: 15px;
-  }
- 
   .cus-tab-content {
     .tabaccount-list {
       padding: 10px;
@@ -463,7 +398,7 @@ body {
   }
 
   .Lossstatistics_wrap {
-    padding: 15px;
+    padding: 15px 0;
     background-color: #fff;
     border-radius: 10px;
     .time_tab {

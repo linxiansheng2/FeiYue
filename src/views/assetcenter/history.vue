@@ -7,6 +7,8 @@ export default {
 import { onMounted ,reactive,onUnmounted} from 'vue'
 import $api from '@/https'
 import {useStore} from 'vuex'
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 const $store = useStore();
 const Store:any = reactive({data:{
     userMoney:{},
@@ -79,11 +81,11 @@ onUnmounted(()=>{
         <van-divider />
         <div class="bottom-content">
             <div class="bottom-item left">
-                <div class="title">可用</div>
+                <div class="title">{{$t('assetcenter_history.assetcenter_history1')  }}</div>
                 <p class="red-price">{{ Store.data.userMoney.IndexMoney }}</p>
             </div>
             <div class="bottom-item right">
-                <div class="title">拆合(USD)</div>
+                <div class="title">{{$t('assetcenter_history.assetcenter_history2')  }}(USD)</div>
                 <p class="block-price">{{ Store.data.userMoney.totalUsdt - Store.data.userMoney.IndexMoney }}</p>
             </div>
         </div>
@@ -91,10 +93,10 @@ onUnmounted(()=>{
 
     <Cus-Card padding="15" v-show="Store.data.showChange">
         <div class="history-box">
-            <div class="history-tit"><b>財務記錄</b></div>
+            <div class="history-tit"><b>{{$t('assetcenter_history.assetcenter_history3')  }}</b></div>
             <div class="history-btn">
-                <span class="btn-item" :class="{'active':Store.data.changeValue}" @click="()=>{onChange(true)}">充值</span>
-                <span class="btn-item" :class="{'active':!Store.data.changeValue}" @click="()=>{onChange(false)}">提现</span>
+                <span class="btn-item" :class="{'active':Store.data.changeValue}" @click="()=>{onChange(true)}">{{$t('assetcenter_history.assetcenter_history4')  }}</span>
+                <span class="btn-item" :class="{'active':!Store.data.changeValue}" @click="()=>{onChange(false)}">{{$t('assetcenter_history.assetcenter_history5')  }}</span>
             </div>
         </div>
     </Cus-Card>
@@ -104,21 +106,22 @@ onUnmounted(()=>{
         <van-list
             v-model:loading="Store.data.loading"
             :finished="Store.data.finished"
-            finished-text="没有更多了"
+            :finished-text="$t('assetcenter_history.assetcenter_history6')"
+            :loading-text = "$t('vantGlobal.loadingtext')"
             @load="onLoad"
             >
             <div class="order-list">
                 <!-- {{ item.State?(item.State == 1 ? 'Approve' :'Refuse'):'Unaudited'}} -->
                 <div class="order-item" v-for="item in Store.data.list" :key="item.id">
-                    <div class="order-info"><span>{{`${Store.data.changeValue?'充值':'提现'}金额`}}</span><span>{{ item.money }}</span></div>
-                    <div class="order-info"><span>到账金额</span><span>{{ item.SJmoney }}</span></div>
-                    <div class="order-info"><span>状态</span><span class="state" 
+                    <div class="order-info"><span>{{`${Store.data.changeValue?`${$t('assetcenter_history.assetcenter_history7')  }`:`${$t('assetcenter_history.assetcenter_history8')  }`}${$t('assetcenter_history.assetcenter_history9')  }`}}</span><span>{{ item.money }}</span></div>
+                    <div class="order-info"><span>{{$t('assetcenter_history.assetcenter_history10')  }}</span><span>{{ item.SJmoney }}</span></div>
+                    <div class="order-info"><span>{{$t('assetcenter_history.assetcenter_history11')  }}</span><span class="state" 
                         :class="{
                         'wsh':item.State == 0,
                         'on':item.State == 1,
                         'off':item.State == 2,
-                        }">{{ item.State?(item.State == 1 ? '通过' :'拒绝'):'未审核'}}</span></div>
-                    <div class="order-info"><span>时间</span><span>{{ item.create_time }}</span></div>
+                        }">{{ item.State?(item.State == 1 ? `${$t('assetcenter_history.assetcenter_history12')  }` :`${$t('assetcenter_history.assetcenter_history13')  }`):`${$t('assetcenter_history.assetcenter_history14')  }`}}</span></div>
+                    <div class="order-info"><span>{{$t('assetcenter_history.assetcenter_history15')  }}</span><span>{{ item.create_time }}</span></div>
                 </div>
             </div>
         </van-list>

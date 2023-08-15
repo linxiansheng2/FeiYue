@@ -6,13 +6,14 @@ export default {
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import api from "../../https";
-
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 const flogs = ref<boolean>(false);
 const bankhuiyuan = [
-  { id: 0, value: "所有会员" },
-  { id: 1, value: "1代会员" },
-  { id: 2, value: "2代会员" },
-  { id: 3, value: "3代会员" },
+  { id: 0, value: t('guidance_index.guidance_index_bankhuiyuan.guidance_index_bankhuiyuan1') },
+  { id: 1, value: t('guidance_index.guidance_index_bankhuiyuan.guidance_index_bankhuiyuan2') },
+  { id: 2, value: t('guidance_index.guidance_index_bankhuiyuan.guidance_index_bankhuiyuan3') },
+  { id: 3, value: t('guidance_index.guidance_index_bankhuiyuan.guidance_index_bankhuiyuan4') },
 ];
 const cxkindex = ref<any>(0);
 // const shaniaocxk=ref<any>('')
@@ -31,9 +32,9 @@ const xianshia = () => {
 const sbindex = ref<any>(0);
 const flags = ref<boolean>(false);
 const banklianghua = [
-{ id: 0, value: "全部" },
-  { id: 1, value: "挖矿返佣" },
-  { id: 2, value: "期权返佣" },
+{ id: 0, value: t('guidance_index.guidance_index_banklianghua.guidance_index_banklianghua1') },
+  { id: 1, value: t('guidance_index.guidance_index_banklianghua.guidance_index_banklianghua2') },
+  { id: 2, value: t('guidance_index.guidance_index_banklianghua.guidance_index_banklianghua3') },
 ];
 const onchangses = (ev: any) => {
   sbindex.value = ev;
@@ -50,7 +51,7 @@ const flagxianshi = ref<boolean>(true);
 const postloser = async (type:any,index: any, pageSize: any) => {
   const data = await api.postloser(type,index, pageSize);
   // console.log(data, "邀请记录");
-  if (data.code == 200) {
+  if (data && data['code'] == 200) {
     datas.data = data.rows;
     datas.data.forEach((item:any)=>{
       // let str=item.address.slice(5,-5)
@@ -64,7 +65,7 @@ const cxkdatas=reactive<any>({data:[]})
 const posttelist = async (type: any, pageNum: any, pageSize: any) => {
   const res = await api.posttelist(type, pageNum, pageSize);
   // console.log(res, "//下级返佣记录接口");
-  if(res.code==200){
+  if(res && res['code'] == 200){
         cxkdatas.data=res.rows
         cxkdatas.data.forEach((item:any)=>{
       // let str=item.address.slice(5,-5)
@@ -77,7 +78,7 @@ const posttelist = async (type: any, pageNum: any, pageSize: any) => {
 const chaxun=async()=>{
       const res=await api.postloser(cxkindex.value,1,10)
       // console.log(res,'查询');
-     if(res.code==200){
+     if(res && res['code'] == 200){
       datas.data=res.rows
       datas.data.forEach((item:any)=>{
       item.address=item.address.replace(/^(.{4})(?:\w+)(.{4})$/,"$1****$2")
@@ -98,7 +99,7 @@ const fanyong=()=>{
 const chaxuna=async()=>{
     const resdata=await api.posttelist(sbindex.value,1,10)
     // console.log(resdata,'');
-    if(resdata.code==200){
+    if(resdata && resdata['code'] == 200){
       cxkdatas.data=resdata.rows
         cxkdatas.data.forEach((item:any)=>{
       // let str=item.address.slice(5,-5)
@@ -121,14 +122,14 @@ onMounted(() => {
           :class="{ current1: flagxianshi }"
           @click="yaoqing"
         >
-          邀请记录
+          {{ $t('guidance_index.guidance_index1') }}
         </div>
         <div
           class="chushi"
           :class="{ current2: !flagxianshi }"
           @click="fanyong"
         >
-          返佣记录
+        {{ $t('guidance_index.guidance_index2') }}
         </div>
       </div>
       <div class="filters" v-if="flagxianshi">
@@ -145,7 +146,7 @@ onMounted(() => {
             {{ item.value }}
           </div>
         </div>
-        <div class="cxkcha"  @click="chaxun">查询</div>
+        <div class="cxkcha"  @click="chaxun">{{ $t('guidance_index.guidance_index3') }}</div>
       </div>
       <!-- lianghua -->
       <div class="filters" v-else>
@@ -162,12 +163,12 @@ onMounted(() => {
             {{ item.value }}
           </div>
         </div>
-        <div class="cxkcha" @click="chaxuna">查询</div>
+        <div class="cxkcha" @click="chaxuna">{{ $t('guidance_index.guidance_index3') }}</div>
       </div>
       <div class="gainList" v-if="flagxianshi">
         <div class="no-more" v-if="!datas.data.length">
           <img src="../../assets/share/wufa.png" alt="" />
-          <div class="fandeihen">暫無參與記錄</div>
+          <div class="fandeihen">{{ $t('guidance_index.guidance_index4') }}</div>
         </div>
         <div class="sbssscxk">
           <div v-for="itema in datas.data" :key="itema.id" class="tantantan">
@@ -189,13 +190,13 @@ onMounted(() => {
       <div class="gainList" v-else>
         <div class="no-more" v-if="!datas.data.length">
           <img src="../../assets/share/wufa.png" alt="" />
-          <div class="fandeihen">暫無參與記錄</div>
+          <div class="fandeihen">{{ $t('guidance_index.guidance_index4') }}</div>
         </div>
         <div class="sbssscxk">
           <div class="dongadong donga">
-          <div class="color_title">地址</div>
-          <div class="color_title">时间</div>
-          <div class="color_title">金额</div>
+          <div class="color_title">{{ $t('guidance_index.guidance_index5') }}</div>
+          <div class="color_title">{{ $t('guidance_index.guidance_index6') }}</div>
+          <div class="color_title">{{ $t('guidance_index.guidance_index7') }}</div>
           
 
         </div>

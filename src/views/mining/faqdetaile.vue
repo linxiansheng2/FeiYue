@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'detaile',
+  name: 'faqdetaile',
 }
 </script>
 <script setup lang="ts">
@@ -18,7 +18,7 @@ const Store:any = reactive({data:{
 // const updatetime=ref<any>(0)
 // const daoitime=ref<any>(0)
 const getbulletin = async (id:number) => {
-  const res = await $api.getbulletin(id);
+  const res = await $api.gethotxiangqing(id);
   console.log(res,'swbres');
  
 
@@ -60,12 +60,10 @@ onMounted(()=>{
       </div>
     </div>
   </div>
-  <div class="timercxcka">
-    <div class="timer">
-    <span>{{$t('officialActivity_detaile.officialActivity_detaile1')}}：</span>
-    <van-count-down :time="time" :format="`DD ${$t('officialActivity_detaile.officialActivity_detaile2')} HH ${$t('officialActivity_detaile.officialActivity_detaile3')}mm${$t('officialActivity_detaile.officialActivity_detaile4')}ss${$t('officialActivity_detaile.officialActivity_detaile5')}`" />
-  </div>
-  </div>
+  <!-- <div class="timer">
+    <span>結束時間：</span>
+    <van-count-down :time="time" format="DD 天 HH 时 mm 分 ss 秒" />
+  </div> -->
 </template>
 
 <style scoped lang="less">
@@ -119,14 +117,8 @@ onMounted(()=>{
     align-items: center;
     margin-top: 52px;
     margin-bottom: 76px;
-    width: 90%;
-    
     .van-count-down{
       color: #fff;
     } 
-}
-.timercxcka{
-  display: flex;
-  justify-content: center;
 }
 </style>

@@ -5,14 +5,13 @@ export default {
 </script>
 <script setup lang="ts">
 import { getAssetURL } from '@/common/load_asset'
-
 </script>
 
 <template>
   <div class="page-body">
     <div class="layout">
       <img class="imgundefind" :src="getAssetURL('assetcenter/404img.jpg')" alt="">
-        <van-button type="primary" to="/" color="#4B3F8B" plain >Go to Home Page</van-button>
+        <van-button type="primary" to="/" color="#4B3F8B" plain >{{ $t('cusGlobal.state16') }}</van-button>
     </div>
   </div>
 </template>

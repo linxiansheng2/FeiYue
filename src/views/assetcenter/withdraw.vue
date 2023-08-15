@@ -11,6 +11,8 @@ import {useRouter, useRoute} from  'vue-router';
 import $api  from '@/https';
 import {useStore} from 'vuex'
 import router from '@/router';
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 const $store = useStore();
 const route = useRoute() // this.$route
 
@@ -23,8 +25,8 @@ const Store:any = reactive({data:{
   czmoneyItem:{}, //充值渠道详情
   active:2,       //TAb默认索引
   tabStore:[
-    {title:'充值',value:1},
-    {title:'提现',value:2},
+    {title:t('assetcenter_withdraw.assetcenter_withdraw_tabStore.assetcenter_withdraw_tabStore1'),value:1},
+    {title:t('assetcenter_withdraw.assetcenter_withdraw_tabStore.assetcenter_withdraw_tabStore2'),value:2},
   ],
   recharge:'',
   rechargeNew:''
@@ -71,17 +73,17 @@ const onUpdateBank = (value:string,key:string) => {
 
 // 当前钱包充值
 const onSubmitCZ = () => {
-  showToast('当前钱包充值')
+  showToast(t('assetcenter_withdraw.assetcenter_withdraw16'))
 }
 
 // 复制
 const onCopy = (val:string) => {
   navigator.clipboard.writeText(val)
   .then(() => {
-    showToast('复制成功');
+    showToast(t('assetcenter_withdraw.assetcenter_withdraw17'));
   })
   .catch(() => {
-    showToast('复制失败');
+    showToast(t('assetcenter_withdraw.assetcenter_withdraw18'));
   })
   }
 
@@ -91,7 +93,7 @@ const onCopy = (val:string) => {
     $store.commit('setLoading',true);
     if(Store.data.active == 1){
       if(!Store.data.recharge){
-        showToast('请输入充值金额');
+        showToast(t('assetcenter_withdraw.assetcenter_withdraw19'));
         $store.commit('setLoading',false);
         return 
       }
@@ -152,12 +154,12 @@ const onCopy = (val:string) => {
 
           <div class="wallet-box">
             <img class="wallet-qr" :src="getAssetURL('assetcenter/ewm.png')">
-            <div class="wallet-txt">存入錢包</div>
-            <div class="wallet-tip">複製您的唯一地址或使用二維碼存款</div>
+            <div class="wallet-txt">{{$t('assetcenter_withdraw.assetcenter_withdraw1')  }}</div>
+            <div class="wallet-tip">{{$t('assetcenter_withdraw.assetcenter_withdraw2')  }}</div>
           </div>
 
         <div class="deit-list">
-          <div class="name">錢包地址</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw3')  }}</div>
           <div class="network grey">
             <div class="money-address">{{ $route.query['id']?Store.data.czmoneyItem.address: userInfo?.address }}</div>
             <div class="clone-btn" @click="onCopy($route.query['id']?Store.data.czmoneyItem.address: userInfo?.address)">Copy</div>
@@ -166,19 +168,19 @@ const onCopy = (val:string) => {
 
 
         <div class="deit-list">
-          <div class="name">充值數量</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw4')  }}</div>
           <div class="network grey">
             <van-cell-group inset>
               <van-field 
               v-model="Store.data.recharge" 
-              placeholder="請輸入充值金額" 
+              :placeholder="$t('assetcenter_withdraw.assetcenter_withdraw19')" 
               @update:model-value="(value)=>{onUpdateBank(value,'czsl')}"
               :maxlength="Store.data.czmoneyItem['ZDCZ']?String(Store.data.czmoneyItem['ZDCZ']).length:10"
                />
             </van-cell-group>
           </div>
-          <div class="order">我會得到{{ Store.data.recharge? Store.data.rechargeNew : '0.00' }} USDT</div>
-          <div class="recharge-btn" v-if="currentCZ"><van-button type="primary" size="normal" color="#2850E7" @click="onSubmitCZ">当前钱包充值</van-button></div>
+          <div class="order">{{$t('assetcenter_withdraw.assetcenter_withdraw5')  }}{{ Store.data.recharge? Store.data.rechargeNew : '0.00' }} USDT</div>
+          <div class="recharge-btn" v-if="currentCZ"><van-button type="primary" size="normal" color="#2850E7" @click="onSubmitCZ">{{$t('assetcenter_withdraw.assetcenter_withdraw6')  }}</van-button></div>
         </div>
 
       </div>
@@ -186,11 +188,11 @@ const onCopy = (val:string) => {
       </div>
       <div class="page-box" :class="{'active':Store.data.active == 2}">
         <div class="deit-list">
-          <div class="name">鏈類型</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw7')  }}</div>
           <div class="network">ETHereum Main NetWork</div>
         </div>
         <div class="deit-list">
-          <div class="name">帳戶</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw8')  }}</div>
           <div class="network">
             <div>
               <div class="network-col">
@@ -213,18 +215,18 @@ const onCopy = (val:string) => {
 
         </div>
         <div class="deit-list">
-          <div class="name">錢包地址</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw9')  }}</div>
           <div class="network line">{{ userInfo?.address }}</div>
         </div>
         <div class="deit-list">
-          <div class="name">提款金額</div>
+          <div class="name">{{$t('assetcenter_withdraw.assetcenter_withdraw10')  }}</div>
           <div class="network amount">
             <van-cell-group inset>
               <van-field 
               v-model="price" 
               type="number" 
               :maxlength="String(Store.data.txmoneyList[activeIndex].ZDTX).length"
-              :placeholder="`請輸入提款金額 <=${Store.data.txmoneyList[activeIndex].ZDTX}`" 
+              :placeholder="`${$t('assetcenter_withdraw.assetcenter_withdraw10') } <=${Store.data.txmoneyList[activeIndex].ZDTX}`" 
               @update:model-value="(value)=>{onUpdateBank(value,'tx')}
               "/>
             </van-cell-group>
@@ -232,14 +234,14 @@ const onCopy = (val:string) => {
         </div>
         <div class="deit-list">
           <div class="name">
-            <span>提現費用：{{ `${Store.data.txmoneyList[activeIndex].TXFL}%` }}</span>
-            <span>實際到賬：{{price?newprice:'0.000'}}</span>
+            <span>{{$t('assetcenter_withdraw.assetcenter_withdraw12')  }}：{{ `${Store.data.txmoneyList[activeIndex].TXFL}%` }}</span>
+            <span>{{$t('assetcenter_withdraw.assetcenter_withdraw13')  }}：{{price?newprice:'0.000'}}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="submit-Box"><van-button type="primary" block color="#2850E7" @click="onSubmit">提交</van-button></div>
+    <div class="submit-Box"><van-button type="primary" block color="#2850E7" @click="onSubmit">{{$t('assetcenter_withdraw.assetcenter_withdraw15')  }}</van-button></div>
   </div>
 </template>
 

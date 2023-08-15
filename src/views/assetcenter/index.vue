@@ -9,24 +9,26 @@ import { getAssetURL } from '@/common/load_asset';
 import $api  from '@/https';
 import * as echarts from 'echarts';
 import dayjs from "dayjs"
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n();
 type EChartsOption = echarts.EChartsOption;
 var option: EChartsOption;
 const Store:any = reactive({data:{
     todayProfit: 0,  //当日盈亏usdt
     totalUsdt: 0,   //主账户余额
     money:[
-        {title:'可用餘額',key:'IndexMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAALASURBVHgBrVW7bhNBFL3z8GPXdiITUgC2C4SoQhqnsWgokJCiIKUJSsUXQMkX0IWSjo4OSOMiokKCJkrlghAaikiQEBdRYoGzu/buzlzuLHHiOOtHEp/Cu5rxnjNz7p0zDAYAEdnc4z2rYVkJ/68j7ATnZpx7iD5rh76T9CuFDX919Ynqx8HiBpeWPogaPMxKz0vACGC82Z5NbbpxQucEKpUdq2EzW1uMwQVgdnXkoru7UfT6CpQXfttNABuugFy97tZqc+45AbPygymegTHAPdBOZydR0YznxhYYE7LEZThPBDbbs7GeM67vgeTLcEEYrlqjnDXv0ih99XKpOHLO5FsEKIYpWO+d523YGSQi02nqQGSsQN7bPd6fkDN4yhDMs9RLgBpWUOtXg0SaVHCZLGSS4J12FhlXQi6rSuEzOmlbNFQeRMIln9Gh3oqbs/L5BE8eurJ7UAmcoT2gRvwOw5DAefr9LKR8ETcdpqa4PFdcxT4iVzNC8qoK9SI9XzLGJuMIKEpKiLDFQC+TCKgwPGNZmjlCxn5I/tJHYERIvYihWoQ+0Fp8E0JNUjNU40RY4dHOtU6I9YJGlwHFhEb1BoaAfLjPBK+G7eAOF+JP9D3Fh0xOZBQVmcevDt6RZ//F6DyYlu39D9n4PkpEwV8rrZ93yA1M4lJgekGOygVDYMgR8IwAtXBJCj5PgTNJ5CsQLegUJs6ZOQx3F/am4BLo2KJp5b3kBj/Wbh5Ks47QOgxGzf5uUAetY6in4+YaR4kWcevI++3VfNMUBMYEh7j2v0xHkX1cXKZbxcCBMYG5v1zDGb13T9ygCyd3xQvH5E+968I50571tVuuf90/uoxdxhb34KfTTW7Q595FPv1g385ngzSMgLDVCrY/3W52bBlB4FSoUNlNmcRtUyhmjnPLDbROKl95jUZQr5W96ET0wT9SOkN19EywhAAAAABJRU5ErkJggg=='},
-        {title:'期权交易账户',key:'JyMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKjSURBVHgBrVW7bhNBFD13Znaz3jwsiyooiZQOiQ4qlCYSVSQoI/wFcUUZKqQoEh0lVfgBIuUDaNMEJKRUOJREchANEsExWT92dy53Ng+c2Jus5ZxivZ69c86dO/dBuAHMTKg9LwEdD+mphp5Q2YeOZgR/Ehz7PWCuRzs7aR4HDSVeXdWoHE8BiYciSOIuWvejYUI0SP6khFIYIkgJo8Cdqh2JyOd2rgCvPQuBvyHGQiui9/vRxT91Se48H5vcYTo84+oTyGLuwnJXEK6MU2DORH+GMF7hmKcxlsBqpkvxQejpxoCBu7/guyQJmipTMt5EUfI4pjcg4pTsiYG3EseoDrec9phBEqIffkFuIVdVqHTLMi0QqXW22GaihW5XlYduqD0uKVQmCwsQeN7T6ih7ZzTdr0/6g1J2JWeLZ9BhgwAFwSfZU8ilxslofpjahBSR3AMPmuuSUiMVlMZeL1Y1X6u6EH5NUjqwUC+04U9D7VOjDUaAUahL9jQTm1aVO43iqoF+feMepF172cTOEffUOyLMiJd1OXhZgWYYfB57Wzc+v+1zM59d2oc4MCkWibr+jYnL8njl3m22Qufrrg7oyPf4EW6DdFwJURBLiyjWNcFb7lRKo+5SU5OdF90ly6rh+/bjgLm0c3LFgNryvf51l+8EWxbP65LnS4ppPU9SQtm0Fi+HCszu/jZiwLxm4v7e73l2u8/rPanehkRmRe5hISMFNaycRBP2cjNICoA2YbPA8oY0vcOnlZFnQB46EWPxy7ETyC7XvWAxPcVdoa2jjBN984A2dzvAVISx0boy1QZH5sZygEM9OfrIlLA4z28amf9F5GS/lkMkRbtUK8bsfusiLLcKXBH6NjeBygMfHWn/QXhmn1V/z5VwjK39tsvEPI5/SuYYDSZVtTAAAAAASUVORK5CYII='},
-        {title:'质押挖矿账户',key:'ZyMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAOgSURBVHgBrVVLbBNnEJ75d9frRxJsnEIaBzWUHMoBqQ+atlRQlwNSe+ilVdVDW6hK1UptVaniIeCAwgHEQ0hAhISEIIELIB4nxAUE4k0gCImHghTxip04sZ3YjuN4d//dn/3X+LFO1oDgk9b+d/6Z+eafnX8GoQbYxo0k+v6ZQD7LvDoySRSJaMkJNUARlBzmswvmB8fx6wvUyQdOJ7y17xPJT0kTSuiBVwAipue2eZLTEU0heLp3QUBzSUE0RAKvAYnpuu7Sk3N/u5NyJIh0twcVBYLwBpBlSLYs70kW30tR8sjf1DkH9/H44Id+GwHPOU8LvCUIqhBk58NWQVg/QUqCBqIt55vlTQsXt3/0g89Vll16xsAjlrPqNq2/gstd793d2ldpq6EgRPsnm8xlROTRm84bKhWOyMtDt4QvtxkjYmjZvALvSJbBuUEGH7+LEPAUSJoCADHvt2EyEft+zqPuaKUPhTEvL3Pi0tW6yo1e/Lz+mPDrYYpiqCdifpsUs+RH7xf+H8QZmLcAGmSTwLREQgKDbSsOpJoX10MV+t45EyBe5rYRbMe/VuepGqJaDvhz6t4E9ESYWW4IfjeaaUEYNk/TPAMgRwvPJIitt+et2VBNUC+jRwRZl8EQS8LRJ1fzcb3MOWQ+i2Z/Cv981lKWTQJcjNudNVCaWVpFQIFJpPpCrZ95tlMC3ZbPx7FRm2FCsTsSGI1+93Tnnir/oDOQptzWcN2jzJL6yNpKWSSZtumkNbvN0uGuX+ZPXBqHaUAoNab0jx2NJ242S5lSRJFEGhhjpf0xtawbUIf2hEfsFVQEbx/EJwnqdJunW/Z3ulG/w9c5RYPB0WwhelPbeMHFU7Oq78dOcIBCRIWMK2zSSWHljBv/EzCso/dFR+zRM2OcpwZqQBSVLPng72/GnBR+D1yPtrpSVqoG4oUmOfqCYJY6sNspNUW0tvqzBLHDkBFzTkonQl3dXqQ3+ocKlZQxP7BPT5387+HPh2o55zOCzwerimIGHbamlAP+aOxdm8xMpNJ5DbIqjS6KH++s5Zz74gOIry2ChX/2akGhIeFksKLuytASX/+/9wfTMCvbv+tlqREEI1GcbraBM7D/i5mqoTc6GR6Zva79p+EtPVADLiIk5qy8VrqZU0bm2MGwP6lnGl93ZPK08MhrjswieAu3ZoRkb+NOMNt9rq3NE3uloV9NxNu5R/L6EDV38VQCgqYBF5Bcy8CyFHZ0OBbIc+VnhuIIx9wfAAAAAElFTkSuQmCC'},
+        {title:t('assetcenter_index.assetcenter_money.assetcenter_money1'),key:'IndexMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAALASURBVHgBrVW7bhNBFL3z8GPXdiITUgC2C4SoQhqnsWgokJCiIKUJSsUXQMkX0IWSjo4OSOMiokKCJkrlghAaikiQEBdRYoGzu/buzlzuLHHiOOtHEp/Cu5rxnjNz7p0zDAYAEdnc4z2rYVkJ/68j7ATnZpx7iD5rh76T9CuFDX919Ynqx8HiBpeWPogaPMxKz0vACGC82Z5NbbpxQucEKpUdq2EzW1uMwQVgdnXkoru7UfT6CpQXfttNABuugFy97tZqc+45AbPygymegTHAPdBOZydR0YznxhYYE7LEZThPBDbbs7GeM67vgeTLcEEYrlqjnDXv0ih99XKpOHLO5FsEKIYpWO+d523YGSQi02nqQGSsQN7bPd6fkDN4yhDMs9RLgBpWUOtXg0SaVHCZLGSS4J12FhlXQi6rSuEzOmlbNFQeRMIln9Gh3oqbs/L5BE8eurJ7UAmcoT2gRvwOw5DAefr9LKR8ETcdpqa4PFdcxT4iVzNC8qoK9SI9XzLGJuMIKEpKiLDFQC+TCKgwPGNZmjlCxn5I/tJHYERIvYihWoQ+0Fp8E0JNUjNU40RY4dHOtU6I9YJGlwHFhEb1BoaAfLjPBK+G7eAOF+JP9D3Fh0xOZBQVmcevDt6RZ//F6DyYlu39D9n4PkpEwV8rrZ93yA1M4lJgekGOygVDYMgR8IwAtXBJCj5PgTNJ5CsQLegUJs6ZOQx3F/am4BLo2KJp5b3kBj/Wbh5Ks47QOgxGzf5uUAetY6in4+YaR4kWcevI++3VfNMUBMYEh7j2v0xHkX1cXKZbxcCBMYG5v1zDGb13T9ygCyd3xQvH5E+968I50571tVuuf90/uoxdxhb34KfTTW7Q595FPv1g385ngzSMgLDVCrY/3W52bBlB4FSoUNlNmcRtUyhmjnPLDbROKl95jUZQr5W96ET0wT9SOkN19EywhAAAAABJRU5ErkJggg=='},
+        {title:t('assetcenter_index.assetcenter_money.assetcenter_money2'),key:'JyMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKjSURBVHgBrVW7bhNBFD13Znaz3jwsiyooiZQOiQ4qlCYSVSQoI/wFcUUZKqQoEh0lVfgBIuUDaNMEJKRUOJREchANEsExWT92dy53Ng+c2Jus5ZxivZ69c86dO/dBuAHMTKg9LwEdD+mphp5Q2YeOZgR/Ehz7PWCuRzs7aR4HDSVeXdWoHE8BiYciSOIuWvejYUI0SP6khFIYIkgJo8Cdqh2JyOd2rgCvPQuBvyHGQiui9/vRxT91Se48H5vcYTo84+oTyGLuwnJXEK6MU2DORH+GMF7hmKcxlsBqpkvxQejpxoCBu7/guyQJmipTMt5EUfI4pjcg4pTsiYG3EseoDrec9phBEqIffkFuIVdVqHTLMi0QqXW22GaihW5XlYduqD0uKVQmCwsQeN7T6ih7ZzTdr0/6g1J2JWeLZ9BhgwAFwSfZU8ilxslofpjahBSR3AMPmuuSUiMVlMZeL1Y1X6u6EH5NUjqwUC+04U9D7VOjDUaAUahL9jQTm1aVO43iqoF+feMepF172cTOEffUOyLMiJd1OXhZgWYYfB57Wzc+v+1zM59d2oc4MCkWibr+jYnL8njl3m22Qufrrg7oyPf4EW6DdFwJURBLiyjWNcFb7lRKo+5SU5OdF90ly6rh+/bjgLm0c3LFgNryvf51l+8EWxbP65LnS4ppPU9SQtm0Fi+HCszu/jZiwLxm4v7e73l2u8/rPanehkRmRe5hISMFNaycRBP2cjNICoA2YbPA8oY0vcOnlZFnQB46EWPxy7ETyC7XvWAxPcVdoa2jjBN984A2dzvAVISx0boy1QZH5sZygEM9OfrIlLA4z28amf9F5GS/lkMkRbtUK8bsfusiLLcKXBH6NjeBygMfHWn/QXhmn1V/z5VwjK39tsvEPI5/SuYYDSZVtTAAAAAASUVORK5CYII='},
+        {title:t('assetcenter_index.assetcenter_money.assetcenter_money3'),key:'ZyMoney',count:0,Proportion:0,ico:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAOgSURBVHgBrVVLbBNnEJ75d9frRxJsnEIaBzWUHMoBqQ+atlRQlwNSe+ilVdVDW6hK1UptVaniIeCAwgHEQ0hAhISEIIELIB4nxAUE4k0gCImHghTxip04sZ3YjuN4d//dn/3X+LFO1oDgk9b+d/6Z+eafnX8GoQbYxo0k+v6ZQD7LvDoySRSJaMkJNUARlBzmswvmB8fx6wvUyQdOJ7y17xPJT0kTSuiBVwAipue2eZLTEU0heLp3QUBzSUE0RAKvAYnpuu7Sk3N/u5NyJIh0twcVBYLwBpBlSLYs70kW30tR8sjf1DkH9/H44Id+GwHPOU8LvCUIqhBk58NWQVg/QUqCBqIt55vlTQsXt3/0g89Vll16xsAjlrPqNq2/gstd793d2ldpq6EgRPsnm8xlROTRm84bKhWOyMtDt4QvtxkjYmjZvALvSJbBuUEGH7+LEPAUSJoCADHvt2EyEft+zqPuaKUPhTEvL3Pi0tW6yo1e/Lz+mPDrYYpiqCdifpsUs+RH7xf+H8QZmLcAGmSTwLREQgKDbSsOpJoX10MV+t45EyBe5rYRbMe/VuepGqJaDvhz6t4E9ESYWW4IfjeaaUEYNk/TPAMgRwvPJIitt+et2VBNUC+jRwRZl8EQS8LRJ1fzcb3MOWQ+i2Z/Cv981lKWTQJcjNudNVCaWVpFQIFJpPpCrZ95tlMC3ZbPx7FRm2FCsTsSGI1+93Tnnir/oDOQptzWcN2jzJL6yNpKWSSZtumkNbvN0uGuX+ZPXBqHaUAoNab0jx2NJ242S5lSRJFEGhhjpf0xtawbUIf2hEfsFVQEbx/EJwnqdJunW/Z3ulG/w9c5RYPB0WwhelPbeMHFU7Oq78dOcIBCRIWMK2zSSWHljBv/EzCso/dFR+zRM2OcpwZqQBSVLPng72/GnBR+D1yPtrpSVqoG4oUmOfqCYJY6sNspNUW0tvqzBLHDkBFzTkonQl3dXqQ3+ocKlZQxP7BPT5387+HPh2o55zOCzwerimIGHbamlAP+aOxdm8xMpNJ5DbIqjS6KH++s5Zz74gOIry2ChX/2akGhIeFksKLuytASX/+/9wfTMCvbv+tlqREEI1GcbraBM7D/i5mqoTc6GR6Zva79p+EtPVADLiIk5qy8VrqZU0bm2MGwP6lnGl93ZPK08MhrjswieAu3ZoRkb+NOMNt9rq3NE3uloV9NxNu5R/L6EDV38VQCgqYBF5Bcy8CyFHZ0OBbIc+VnhuIIx9wfAAAAAElFTkSuQmCC'},
     ],
     current:0,
     profitData:[]
 }})
 const accountList = [
-    {name:'充幣',url:'/assetcenter/deposit'},
-    {name:'提幣',url:'/assetcenter/withdraw'},
-    {name:'劃轉',url:'/assetcenter/transfer'},
-    {name:'歷史記錄',url:'/assetcenter/history'},
+    {name:t('assetcenter_index.accountList.accountList1'),url:'/assetcenter/deposit'},
+    {name:t('assetcenter_index.accountList.accountList2'),url:'/assetcenter/withdraw'},
+    {name:t('assetcenter_index.accountList.accountList3'),url:'/assetcenter/transfer'},
+    {name:t('assetcenter_index.accountList.accountList4'),url:'/assetcenter/history'},
 ]
 
 // 日期切换
@@ -51,7 +53,7 @@ const setEchartOption = () => {
       {
         left: 'left',
         top: '5%',
-        text: `Total Profit: ${Store.data.todayProfit} USDT`,
+        text: `${t('assetcenter_index.assetcenter3')}: ${Store.data.todayProfit} USDT`,
         textStyle:{
           color:'#5AD0B6',
           fontSize:'14px'
@@ -165,11 +167,11 @@ onMounted(()=>{
         <div class="account-card account-wrap layout" >
             <div class="account-info">
                 <div class="account-item">
-                    <p class="name">總資產賬戶</p>
+                    <p class="name">{{$t('assetcenter_index.assetcenter1')  }}</p>
                     <p class="txt">{{Store.data.totalUsdt}} USDT</p>
                 </div>
                 <div class="account-item">
-                    <p class="name">今日利潤</p>
+                    <p class="name">{{$t('assetcenter_index.assetcenter2')  }}</p>
                     <p class="txt">{{ Store.data.todayProfit}} USDT</p>
                 </div>
             </div>
@@ -201,8 +203,8 @@ onMounted(()=>{
 
         <div class="Lossstatistics_wrap layout" >
             <div class="time_tab">
-                <div :class="{'current':Store.data.current == 0}" @click="()=>{onChangeSize(7,0)}">7 days</div>
-                <div :class="{'current':Store.data.current == 1}" @click="()=>{onChangeSize(30,1)}">30 days</div>
+                <div :class="{'current':Store.data.current == 0}" @click="()=>{onChangeSize(7,0)}">{{$t('assetcenter_index.assetcenter4')}}</div>
+                <div :class="{'current':Store.data.current == 1}" @click="()=>{onChangeSize(30,1)}">{{$t('assetcenter_index.assetcenter5')}}</div>
             </div>
             <div id="Lossstatistics" ref="EchartDom"></div>
         </div>
@@ -241,7 +243,7 @@ onMounted(()=>{
         font-size: 12px;
         line-height: 150%;
         color: #fff;
-        padding: 14px;
+        padding: 10px;
         .account-info{
             .flexMixin(space-between);
             .account-item{
@@ -258,8 +260,9 @@ onMounted(()=>{
         .account-list{
             .flexMixin(space-between);
             .account-item{
-                flex-basis: 18%;
+                flex-basis: 20%;
                 text-align: center;
+                white-space: nowrap;
                 .account-ico{
                     width: 45px;
                     height: 45px;

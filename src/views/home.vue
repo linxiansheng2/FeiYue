@@ -4,11 +4,11 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive ,onMounted, computed } from 'vue'
+import { reactive ,onMounted, computed } from 'vue'
 import { getAssetURL } from '@/common/load_asset'
 import { useRouter } from  'vue-router'
 import $api  from '../https'
-import {useStore} from 'vuex'
+import { useStore } from 'vuex'
 const $store = useStore();
 const router = useRouter();
 // 首页数据
@@ -37,7 +37,6 @@ const Store:any = reactive({data:{
 
 // 充值登录后显示
 const loginStore = computed(()=>$store.state.login);
-
 const onDeposit = (event:any) => {
   const {dataset} = event.target;
   Store.data.czmoneyIndex = dataset.index-1;
@@ -86,7 +85,6 @@ onMounted(()=>{
     Store.data.cooperate = res[2].rows;
     Store.data.czmoneylist = res[3].rows;
     Store.data.productList = res[4].data;
-    // console.log(res);
     Store.data.loading = true;
   })
   .catch((err)=>{
@@ -294,7 +292,7 @@ onMounted(()=>{
             <h2 class="sectionTitleCen">{{ $t('home.platformInfo') }}</h2>
             <van-divider />
         <div class="platformInfo-list">
-          <div class="platformInfo-item" v-for="(item,index) in Store.data.cooperate" :key="item.id">
+          <div class="platformInfo-item" v-for="item in Store.data.cooperate" :key="item.id">
             <div class="platformInfo-img">
               <img class="platformInfo-logo" :src="item.img" />
             </div>

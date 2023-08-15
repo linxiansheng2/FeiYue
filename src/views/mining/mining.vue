@@ -10,6 +10,8 @@ import api from "../../https";
 import { showToast } from "vant";
 import { number } from "echarts";
 import { useRouter, useRoute } from "vue-router";
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 // import gundong from "@/components/gundong.vue";
 const router = useRouter();
 // import { showToast } from "vant";
@@ -29,19 +31,19 @@ const Store: any = reactive({
     flog: false,
     teamData: [
       {
-        title: "團隊人數",
+        title: t('mining_index.mining_index_store.mining_index_store1'),
         count: 0,
         useDown: false,
         value: "TDZRS",
       },
       {
-        title: "團隊收益",
+        title: t('mining_index.mining_index_store.mining_index_store2'),
         count: "0ETH",
         useDown: false,
         value: "TDZSY",
       },
       {
-        title: "一代收益",
+        title: t('mining_index.mining_index_store.mining_index_store3'),
         useDown: true,
         count: 0,
         key: 1,
@@ -49,7 +51,7 @@ const Store: any = reactive({
         value: "TDZSY1",
       },
       {
-        title: "二代收益",
+        title: t('mining_index.mining_index_store.mining_index_store4'),
         useDown: true,
         count: 0,
         key: 2,
@@ -57,7 +59,7 @@ const Store: any = reactive({
         value: "TDZSY2",
       },
       {
-        title: "三代收益",
+        title: t('mining_index.mining_index_store.mining_index_store5'),
         useDown: true,
         count: 0,
         key: 3,
@@ -88,7 +90,7 @@ const onChangeMoney = async (key: number) => {
   // }
   const rescxk = await api.postsubordinate(key, 0);
   // console.log(rescxk, "下级收益");
-  if (rescxk.code == 200) {
+  if (rescxk && rescxk.code == 200) {
     xiaji.data = rescxk.rows;
     // console.log(xiaji, "xiaji");
     xiajiflag.value = true;
@@ -118,7 +120,7 @@ const getlogin = async () => {
   const ress: any = await api.getlogin();
   // console.log(ress.code);
   // txshuliang.value=ress.data1.zeth_KJH
-  if (ress.code == 200) {
+  if (ress && ress.code == 200) {
     datacxk = ress;
     flags.value = true;
   }
@@ -127,10 +129,10 @@ const getlogin = async () => {
 
 const navIndex = ref<number>(0);
 const navArray = [
-  { name: "交换", index: 0 },
-  { name: "提款", index: 1 },
-  { name: "矿业", index: 2 },
-  { name: "回款", index: 3 },
+  { name: t('mining_index.mining_index_navArray.mining_index_navArray1'), index: 0 },
+  { name: t('mining_index.mining_index_navArray.mining_index_navArray2'), index: 1 },
+  { name: t('mining_index.mining_index_navArray.mining_index_navArray3'), index: 2 },
+  { name: t('mining_index.mining_index_navArray.mining_index_navArray4'), index: 3 },
 ];
 
 const onChangeNav = (_ev: any) => {
@@ -148,7 +150,7 @@ const flagss = ref<boolean>(false);
 const getHomeStatistical = async () => {
   const datas: any = await api.getHomeStatistical();
   // console.log(datas, "sbcxk");
-  if (datas.code == 200) {
+  if (datas && datas.code == 200) {
     stata = datas;
     flagss.value = true;
     // console.log(stata, "stata");
@@ -192,7 +194,7 @@ const getkcshuju = async () => {
   const ress: any = await api.getkcshuju();
   // console.log(ress, "矿池数据");
   // kcshuju.data=ress
-  if (ress.code == 200) {
+  if (ress && ress.code == 200) {
     for (let key in ress) {
       Store.data.teamData.forEach((item: any) => {
         if (key == "TDZSY" && item.value == key) {
@@ -222,7 +224,7 @@ const postrecorded = async (index: number, page: any) => {
   // page=currentPage.value
   const sbaa: any = await api.postrecorded(index, page);
   // console.log(sbaa, "shuju1");
-  if (sbaa.code == 200) {
+  if (sbaa && sbaa.code == 200) {
     zongshu.value = sbaa.total;
     datalist.data = sbaa.rows;
     console.log(datalist, "shuju2");
@@ -242,6 +244,7 @@ const nozhiya=ref<any>(0)
 const getzycombo = async () => {
   const cxkdata: any = await api.getzycombo();
   // console.log(cxkdata,'质押套餐列表1');
+
   nozhiya.value=cxkdata.total
   // console.log(nozhiya.value,'sbnozhiya');
   
@@ -281,7 +284,10 @@ const shuaxinmoney = async () => {
   } else {
     const res = await api.getlxmoney();
     // console.log(res, "是否为2 3");
-    datacxk.data1.usdt_LX = res.Money;
+    if(res && res['code'] == 200){
+      datacxk.data1.usdt_LX = res.Money;
+    }
+    
   }
 };
 const zhiyajilu = () => {
@@ -293,9 +299,12 @@ let gundong = reactive<any>({ data: {} });
 const gundonga = async () => {
   const scxs: any = await api.getshouyia();
   // console.log(scxs, "滚动收益");
-  gundong.data = scxs.data;
+  if(scxs && scxs.code == 200){
+    gundong.data = scxs.data;
+  }
+  
 };
-
+//参与挖矿
 const getzysubmit=async()=>{
   const submitzy=await api.getzysubmit()
   console.log(submitzy,'ssss');
@@ -326,7 +335,7 @@ onMounted(() => {
           <div class="middle_cen">
             <img src="../../assets/mining/shaniao.png" alt="" />
           </div>
-          <div class="middle_cen"><span>總流動性挖礦資金</span></div>
+          <div class="middle_cen"><span>{{$t('mining_index.mining_index1')  }}</span></div>
         </div>
         <div class="middle_etf" v-if="flagss">
           <span>{{ stata.data1.ethMoney }}</span>
@@ -339,13 +348,13 @@ onMounted(() => {
             class="middle_feizhiya"
             :class="{ middle_zhiya: flagxianshi }"
             @click="flagxianshi = true"
-            >非質押</span
+            >{{$t('mining_index.mining_index2')  }}</span
           >
           <span
             class="middle_feizhiya"
             :class="{ middle_zhiya: !flagxianshi }"
             @click="flagxianshi = false"
-            >質押</span
+            >{{$t('mining_index.mining_index3')  }}</span
           >
         </div>
         <div class="middlexlist">
@@ -353,7 +362,7 @@ onMounted(() => {
             <div class="middle_content1">
               <div class="middle_con_img">
                 <img src="../../assets/mining/huobi1.png" alt="" />
-                <span class="middle_con_img_cxk"> 總產出 </span>
+                <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index4')  }} </span>
               </div>
               <div class="middle_con_tit">
                 <span>{{ datacxk.data1.zeth }}</span>
@@ -363,7 +372,7 @@ onMounted(() => {
             <div class="middle_content1">
               <div class="middle_con_img">
                 <img src="../../assets/mining/huobi2.png" alt="" />
-                <span class="middle_con_img_cxk"> 可交换 </span>
+                <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index5')  }} </span>
               </div>
               <div class="middle_con_tit">
                 <span>{{ datacxk.data1.zeth_KJH }}</span>
@@ -373,11 +382,11 @@ onMounted(() => {
             <div class="middle_content1">
               <div class="middle_con_img" v-if="flagxianshi">
                 <img src="../../assets/mining/huobi3.png" alt="" />
-                <span class="middle_con_img_cxk"> 錢包餘額 </span>
+                <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index6')  }} </span>
               </div>
               <div class="middle_con_img" v-else>
                 <img src="../../assets/mining/huobi3.png" alt="" />
-                <span class="middle_con_img_cxk"> 當前質押 </span>
+                <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index7')  }} </span>
               </div>
               <div class="middle_con_tit">
                 <span v-if="flagxianshi">{{ datacxk.data1.usdt_LX }}</span>
@@ -395,7 +404,7 @@ onMounted(() => {
             <div class="middle_content1">
               <div class="middle_con_img">
                 <img src="../../assets/mining/huobi4.png" alt="" />
-                <span class="middle_con_img_cxk"> 賬戶餘額 </span>
+                <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index8')  }} </span>
               </div>
               <div class="middle_con_tit">
                 <span>{{ datacxk.data1.money }}</span>
@@ -414,11 +423,11 @@ onMounted(() => {
             src="../../assets/mining/huobi6.png"
             alt=""
           />
-          <span class="middleshou_cxk">即将收益</span>
+          <span class="middleshou_cxk">{{$t('mining_index.mining_index9')  }}</span>
           <span class="middleshou_cxk">00:00:00</span>
         </div>
         <div class="contetnetf" @click="getzysubmit()">
-          <span> 參與挖礦 </span>
+          <span> {{$t('mining_index.mining_index10')  }} </span>
         </div>
       </div>
     </div>
@@ -431,17 +440,17 @@ onMounted(() => {
       >
         <div class="zhiya_bianhua_ong">
           <div class="setMenuTop">
-            <span class="setmenu_usd">USDT質押挖礦</span>
-            <span @click="zhiyajilu">質押記錄></span>
+            <span class="setmenu_usd">USDT{{$t('mining_index.mining_index11')  }}</span>
+            <span @click="zhiyajilu">{{$t('mining_index.mining_index12')  }}></span>
           </div>
           <div class="setMenuBottom">
             <div class="setMenuMiddle">
               <div class="midLeft">
                 <span class="percent">{{ itemad.ratio }}%</span>
-                <span class="dayNum">{{ itemad.days }} 日</span>
+                <span class="dayNum">{{ itemad.days }} {{$t('mining_index.mining_index13')  }}</span>
               </div>
               <div class="midRight">
-                <span class="yield">日收益率(%)</span>
+                <span class="yield">{{$t('mining_index.mining_index14')  }}(%)</span>
                 <span class="yield"
                   >{{ itemad.minmoney }} - {{ itemad.maxmoney }}USDT</span
                 >
@@ -459,9 +468,9 @@ onMounted(() => {
                     />
                   </van-cell-group>
                 </div>
-                <span class="bottomText">全部</span>
+                <span class="bottomText">{{$t('mining_index.mining_index15')  }}</span>
               </div>
-              <div class="buy" @click="gobuy(itemad)">購買</div>
+              <div class="buy" @click="gobuy(itemad)">{{$t('mining_index.mining_index16')  }}</div>
             </div>
           </div>
         </div>
@@ -484,10 +493,10 @@ onMounted(() => {
       </van-swipe>
     </div>
     <!-- 账户中心 -->
-    <div class="account">賬戶中心</div>
+    <div class="account">{{$t('mining_index.mining_index17')  }}</div>
     <div class="account_u">
       <van-tabs v-model:active="active" @click-tab="onClickTabs">
-        <van-tab title="交换">
+        <van-tab :title="$t('mining_index.mining_index54')  ">
           <div class="navtitle">
             <div class="navttileone">
               <div class="navttileone_tont">
@@ -500,7 +509,7 @@ onMounted(() => {
                     />
                   </van-cell-group>
                 </div>
-                <div class="navttileone_tontbot"><span>全部</span></div>
+                <div class="navttileone_tontbot"><span>{{$t('mining_index.mining_index18')  }}</span></div>
               </div>
               <div class="navtitleimge">
                 <img
@@ -519,9 +528,9 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div class="bottombbtn" @click="duihuan">兑换</div>
+          <div class="bottombbtn" @click="duihuan">{{$t('mining_index.mining_index19')  }}</div>
         </van-tab>
-        <van-tab title="提款">
+        <van-tab :title="$t('mining_index.mining_index20')  ">
           <div class="navtitle">
             <div class="navttileone">
               <div class="navttileone_tont">
@@ -534,7 +543,7 @@ onMounted(() => {
                     />
                   </van-cell-group>
                 </div>
-                <div class="navttileone_tontbot"><span>总提额</span></div>
+                <div class="navttileone_tontbot"><span>{{$t('mining_index.mining_index21')  }}</span></div>
               </div>
               <div class="navtitleimge">
                 <img
@@ -553,9 +562,9 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div class="bottombbtn" @click="querensl">确认</div>
+          <div class="bottombbtn" @click="querensl">{{$t('mining_index.mining_index22')  }}</div>
         </van-tab>
-        <van-tab title="記錄" type="card">
+        <van-tab :title="$t('mining_index.mining_index23')  " type="card">
           <div class="recorsWrap">
             <div
               class="recordsNav"
@@ -576,15 +585,15 @@ onMounted(() => {
               </div>
             </div>
             <div class="prompts">
-              <span class="prompts_day">时间</span>
-              <span v-if="navIndex == 1">状态</span>
-              <span v-if="navIndex == 2">类型</span>
-              <span>数量</span>
+              <span class="prompts_day">{{$t('mining_index.mining_index24')  }}</span>
+              <span v-if="navIndex == 1">{{$t('mining_index.mining_index25')  }}</span>
+              <span v-if="navIndex == 2">{{$t('mining_index.mining_index26')  }}</span>
+              <span>{{$t('mining_index.mining_index27')  }}</span>
             </div>
             <div class="zanwu" style="min-height: 160px; padding: 6px 6px 9px">
               <div class="zanwu_img" v-if="!datalist.data.length">
                 <img src="../../assets/mining/zanwu.png" alt="" />
-                <div>暂无数据</div>
+                <div>{{$t('mining_index.mining_index28')  }}</div>
               </div>
               <div
                 v-for="items in datalist.data"
@@ -597,15 +606,18 @@ onMounted(() => {
               <van-pagination
                 v-model="currentPage"
                 :page-count="zongshu"
-                mode="simple"
                 @change="change"
-              />
+                mode="simple"
+              >
+              <template #prev-text><van-icon name="arrow-left" /></template>
+              <template #next-text><van-icon name="arrow" /></template>
+            </van-pagination>
             </div>
           </div>
         </van-tab>
       </van-tabs>
     </div>
-    <div class="account">團隊數據</div>
+    <div class="account">{{$t('mining_index.mining_index29')  }}</div>
     <div class="account_u">
       <div
         class="guoji"
@@ -638,12 +650,12 @@ onMounted(() => {
           >
             <div class="zanwu_img" v-if="!xiaji.data.length">
               <img src="../../assets/mining/zanwu.png" alt="" />
-              <div>暂无数据</div>
+              <div>{{$t('mining_index.mining_index30')  }}</div>
             </div>
            <div v-else>
             <div class="timer">
-              <div class="timertitle">时间</div>
-              <div class="timertitle">收益</div>
+              <div class="timertitle">{{$t('mining_index.mining_index31')  }}</div>
+              <div class="timertitle">{{$t('mining_index.mining_index32')  }}</div>
             </div>
             <div
               class="timer"
@@ -658,29 +670,29 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div class="accounta">礦池數據</div>
+    <div class="accounta">{{$t('mining_index.mining_index33')  }}</div>
     <div class="account_ua" v-if="flagss">
       <div class="guojia">
         <div class="guojionea">
-          <div class="itemcentera">總產量</div>
+          <div class="itemcentera">{{$t('mining_index.mining_index34')  }}</div>
           <div class="itemcoloa">{{ stata.data1.ethMoney }}</div>
         </div>
       </div>
       <div class="guojia">
         <div class="guojionea">
-          <div class="itemcentera">有效節點</div>
+          <div class="itemcentera">{{$t('mining_index.mining_index35')  }}</div>
           <div class="itemcoloa">{{ stata.data1.nodeNumber }}</div>
         </div>
       </div>
       <div class="guojia">
         <div class="guojionea">
-          <div class="itemcentera">參與者</div>
+          <div class="itemcentera">{{$t('mining_index.mining_index36')  }}</div>
           <div class="itemcoloa">{{ stata.data1.participateNumber }}</div>
         </div>
       </div>
       <div class="guojia">
         <div class="guojionea">
-          <div class="itemcentera">用戶收入</div>
+          <div class="itemcentera">{{$t('mining_index.mining_index37')  }}</div>
           <div class="itemcoloa">{{ stata.data1.usdtMoney }}</div>
         </div>
       </div>
@@ -689,11 +701,11 @@ onMounted(() => {
     <div class="liudong">
       <div class="liuodngone">
         <img class="liudong_img" src="../../assets/mining/liudong.png" alt="" />
-        <span class="liudongspan">流動性挖礦產出</span>
+        <span class="liudongspan">{{$t('mining_index.mining_index38')  }}</span>
       </div>
       <div class="liudongtwo">
-        <div>地址</div>
-        <div>数量</div>
+        <div>{{$t('mining_index.mining_index39')  }}</div>
+        <div>{{$t('mining_index.mining_index40')  }}</div>
       </div>
       <div class="sbacxk">
         <div class="Scrollbox">
@@ -708,30 +720,10 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <!-- <ListScroll /> -->
-        <!-- <gundong/> -->
-
-        <!-- <div class="scroll-list">
-          <ul>
-            <li>列表项一</li>
-            <li>列表项二</li>
-            <li>列表项三</li>
-            <li>列表项四</li>
-            <li>列表项五</li>
-          </ul>
-        </div> -->
-        <!-- <div class="container">
-          <van-swipe :autoplay="3000" :loop="true" :show-indicators="false">
-            <van-swipe-item v-for="(item, index) in list" :key="index"> -->
-        <!-- 这里放置要循环滚动的列表项内容 -->
-        <!-- <van-cell>{{ item }}</van-cell>
-            </van-swipe-item>
-          </van-swipe>
-        </div>  -->
       </div>
     </div>
     <!-- 我们的优势 -->
-    <div class="accounta">我们的优势</div>
+    <div class="accounta">{{$t('mining_index.mining_index41')  }}</div>
     <div class="youshi">
       <div class="youshilist">
         <div class="youshi_img">
@@ -742,9 +734,9 @@ onMounted(() => {
           />
         </div>
         <div class="youshitext">
-          <span>智能调度</span>
+          <span>{{$t('mining_index.mining_index42')  }}</span>
           <span class="youshitext_tit"
-            >我们将通过智能合约调度资金进行投资并实现收益</span
+            >{{$t('mining_index.mining_index43')  }}</span
           >
         </div>
       </div>
@@ -757,9 +749,9 @@ onMounted(() => {
           />
         </div>
         <div class="youshitext">
-          <span>策略多样</span>
+          <span>{{$t('mining_index.mining_index44')  }}</span>
           <span class="youshitext_tit"
-            >矿池将通过多样化策略来高速有效的提高收益</span
+            >{{$t('mining_index.mining_index45')  }}</span
           >
         </div>
       </div>
@@ -772,9 +764,9 @@ onMounted(() => {
           />
         </div>
         <div class="youshitext">
-          <span>超级收益</span>
+          <span>{{$t('mining_index.mining_index46')  }}</span>
           <span class="youshitext_tit"
-            >赞押挖矿或非赞押挖矿中存入资金来获得超级收益</span
+            >{{$t('mining_index.mining_index47')  }}</span
           >
         </div>
       </div>
@@ -787,23 +779,23 @@ onMounted(() => {
           />
         </div>
         <div class="youshitext">
-          <span>自由存取</span>
-          <span class="youshitext_tit">赞押挖矿与非赞押挖矿,资金更加灵活</span>
+          <span>{{$t('mining_index.mining_index48')  }}</span>
+          <span class="youshitext_tit">{{$t('mining_index.mining_index49')  }}</span>
         </div>
       </div>
     </div>
-    <div class="accounta">DEX審計機構</div>
+    <div class="accounta">{{$t('mining_index.mining_index50')  }}</div>
     <div class="dex_img">
       <img class="dex_img_i" src="../../assets/mining/dex1.png" alt="" />
       <img class="dex_img_i" src="../../assets/mining/dex2.png" alt="" />
       <img class="dex_img_i" src="../../assets/mining/dex3.png" alt="" />
     </div>
     <!-- 合作伙伴 -->
-    <div class="accounta">合作夥伴</div>
+    <div class="accounta">{{$t('mining_index.mining_index51')  }}</div>
     <div class="hezuobox">
       <img class="hezuobox_img" src="../../assets/mining/wan.jpg" alt="" />
     </div>
-    <div class="kefua">客服:11:00-23:00 PST 紐約時間</div>
+    <div class="kefua">{{$t('mining_index.mining_index52')  }}:11:00-23:00 PST {{$t('mining_index.mining_index53')  }}</div>
   </div>
 </template>
 
@@ -971,7 +963,7 @@ body {
       }
     }
     .contetnetf {
-      width: 125px;
+      width: max-content;
       height: 31px;
       margin: 11px auto 9px;
       text-align: center;
@@ -982,6 +974,8 @@ body {
       color: #fff;
       font-weight: 700;
       font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
     }
   }
 }
@@ -1093,14 +1087,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  // .prompts_day{
-  //   width: 33%;
-  // }
 }
 .zanwu {
   position: relative;
-  // padding: 6px 6px 9px;
-  // min-height: 161px;
   flex-direction: column;
   display: flex;
   justify-content: space-between;

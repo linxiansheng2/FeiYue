@@ -14,5 +14,11 @@ export default{
         return instance.post('api/public/auxiliary_content.php/get',{
             represent
         })
+    },
+    //邀请接口
+    postyaoqing(address:any,ycode:any){
+        return instance.post('api/client/login.php/login',{
+            address,ycode
+        })
     }
 }

@@ -8,6 +8,8 @@ import { ref, reactive, onMounted } from "vue";
 import api from "../../https";
 import dayjs from "dayjs";
 import * as echarts from "echarts";
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 type EChartsOption = echarts.EChartsOption;
 var option: EChartsOption;
 
@@ -165,30 +167,30 @@ onMounted(() => {
   <div>
     <div class="jinusdt">
       <div class="flexa">
-        <span class="moenytext">金額(USDT)</span>
+        <span class="moenytext">{{$t('mining_profitrecord.mining_profitrecord1')  }}(USDT)</span>
         <span class="moneyjuti">{{ state.data.money }}</span>
       </div>
       <div class="leijishouyi">
         <div class="proviteitem">
-          <span>累計收益</span>
+          <span>{{$t('mining_profitrecord.mining_profitrecord2')  }}</span>
           <span>{{ state.data.zeth }}</span>
         </div>
         <div class="proviteitem">
-          <span>挖礦收益</span>
+          <span>{{$t('mining_profitrecord.mining_profitrecord3')  }}</span>
           <span>{{ state.data.zeth_fan }}</span>
         </div>
         <div class="proviteitem">
-          <span>持有收益率</span>
+          <span>{{$t('mining_profitrecord.mining_profitrecord4')  }}</span>
           <span>0</span>
         </div>
       </div>
     </div>
     <div class="bottom">
       <div class="bottombox">
-        <div class="meiribox">每日收益(ETH)</div>
+        <div class="meiribox">{{$t('mining_profitrecord.mining_profitrecord5')  }}(ETH)</div>
 
         <div class="wabox">
-          <div class="waox_ico">挖礦收益</div>
+          <div class="waox_ico">{{$t('mining_profitrecord.mining_profitrecord6')  }}</div>
           <div class="page-main">
             <div class="cus-tab-content layout">
               <div class="tabaccount-list">
@@ -232,7 +234,7 @@ onMounted(() => {
         </div>
 
         <div class="wabox">
-          <div class="waox_ico">增長百分比</div>
+          <div class="waox_ico">{{$t('mining_profitrecord.mining_profitrecord7')  }}</div>
           <div class="shujuboxa" id="shujuboxa" :style="{'height':'260px'}"></div>
         </div>
 

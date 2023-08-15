@@ -41,7 +41,7 @@ export default {
       </div>
 
       <div class="deposit-list">
-        <div class="deposit-item" v-for="(item,index) in Store.data.Usermoneylist" :key="item.id" @click="$router.push({
+        <div class="deposit-item" v-for="item in Store.data.Usermoneylist" :key="item.id" @click="$router.push({
           path:'/assetcenter/withdraw',
           query:{active:1,id:item.id}
         })">
@@ -50,7 +50,7 @@ export default {
             <div class="deposit-name"><span>{{item.ZSname}}-{{ item.Lname }}</span></div>
           </div>
           <div class="deposit-right">
-            <div class="deposit-hv">{{item.Lname}} 匯率</div>
+            <div class="deposit-hv">{{item.Lname}}{{ $t('assetcenter_deposit.assetcenter_deposit1') }} </div>
             <div class="deposit-price">{{item.HL}}</div>
           </div>
         </div>

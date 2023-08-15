@@ -10,11 +10,13 @@ const datas=reactive<any>({data:{}})
 const flag=ref<boolean>(false)
 const postabout=async()=>{
   const sbcxk=await api.postabout()
-  // console.log(sbcxk,'sb');
-  if(sbcxk.code==200){
+  console.log(sbcxk,'sb');
+ 
+  
+   if(sbcxk && sbcxk['code'] == 200){
     datas.data=sbcxk
     flag.value=true;
-  }
+   }
   
 }
 onMounted(()=>{

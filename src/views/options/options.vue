@@ -11,6 +11,8 @@ import dayjs from "dayjs"
 import { showToast } from 'vant'
 import {useStore} from 'vuex'
 import router from '@/router'
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 const $store = useStore();
 type EChartsOption = echarts.EChartsOption;
 const Store:any = reactive({data:{
@@ -99,6 +101,7 @@ const splitData = async (symbol:string = 'eth_usdt',period:string = '1min') => {
     echartsData.value = setlist.map((item:any) =>[+item[0], +item[1], +item[2], +item[3], +item[4]]);
     volumes.value = setlist.map((item:any, index:number) =>[index, item[4], item[0] > item[1] ? 1 : -1]);
     resetData();
+    myChart.showLoading();
     draw();
   }
 }
@@ -129,9 +132,9 @@ const calculateMA = (dayCount:number, data:any[]) => {
 var styleline = 'display: flex;flex-direction: row;align-items: center;justify-content: space-between;gap:20px'
 // 绘制(配置项)
 const draw = () =>{
-  if(!myChart){
-    myChart = echarts.init(document.getElementById('echartsBox'));
-  }
+  // if(!myChart){
+    
+  // }
   option = {
     backgroundColor: '#fff',
     title: [
@@ -165,20 +168,11 @@ const draw = () =>{
     ],
     axisPointer: { //坐标轴指示器配置项
       link: [{xAxisIndex: [0,1]}],
-      // label: {
-      //   backgroundColor: '#ff0000',
-      //   color: '#fff',
-      //   borderColor: 'rgb(99, 117, 139)',
-      //   borderWidth: 1,
-      //   borderRadius: 2,
-      //   fontSize: 10
-      // }
     },
     xAxis: [{
-      type: 'category', //坐标轴类型。(value:数值轴，适用于连续数据。,category:类目轴，适用于离散的类目数据,time: 时间轴，适用于连续的时序数据,log:对数轴。适用于对数数据)
-      data: dates.value, //类目数据，在类目轴（type: 'category'）中有效。
-      // scale: true,
-      boundaryGap: false, //坐标轴两边留白策略，类目轴和非类目轴的设置和表现不一样。
+      type: 'category', 
+      data: dates.value, 
+      boundaryGap: false, 
       axisLine: {
         show: false
       }, //坐标轴轴线相关设置
@@ -194,8 +188,8 @@ const draw = () =>{
           color: 'rgba(255,255,255, 0.1)'
         }
       }, //坐标轴在 grid 区域中的分隔线。
-      min: 'dataMin', //坐标轴刻度最小值。可以设置成特殊值 'dataMin'，此时取数据在该轴上的最小值作为最小刻度。
-      max: 'dataMax', //坐标轴刻度最大值。可以设置成特殊值 'dataMax'，此时取数据在该轴上的最大值作为最大刻度。
+      min: 'dataMin', 
+      max: 'dataMax', 
       axisPointer: {
         label: {
           margin: 200
@@ -288,12 +282,12 @@ const draw = () =>{
             amount = params[i].data.length > 1 ? Number(formatterNum(params[i].data[5], 2)) : 0;
             // console.log(time,open,close,low,high,amount)
             tooltip = '<div class="charts-tooltip" style="width:auto;">' +
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Time' + '</div><div class="ctr-value">' + time + '</div></div>' + 
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Open' + '</div><div class="ctr-value">' + open + '</div></div>' + 
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'High' + '</div><div class="ctr-value">' + high + '</div></div>' + 
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Low' + '</div><div class="ctr-value">' + low + '</div></div>' + 
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Close' + '</div><div class="ctr-value">' + close + '</div></div>' + 
-              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + 'Amount' + '</div><div class="ctr-value">' +amount + '</div></div></div>';
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options23') + '</div><div class="ctr-value">' + time + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options30') + '</div><div class="ctr-value">' + open + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options28') + '</div><div class="ctr-value">' + high + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options29') + '</div><div class="ctr-value">' + low + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options31') + '</div><div class="ctr-value">' + close + '</div></div>' + 
+              `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options32') + '</div><div class="ctr-value">' +amount + '</div></div></div>';
           }
           if (params[i].seriesName === 'MA5') {
             MA5.value = params[i].data !== 'NAN' ? Number(formatterNum(params[i].data, 2)) : 0
@@ -453,6 +447,7 @@ const draw = () =>{
   };
   option && myChart.setOption(option);
   settitle.value = true;
+  myChart.hideLoading();
   window.addEventListener('resize', () => { myChart.resize()})
 }
 
@@ -477,7 +472,6 @@ const handlemouseClick = (event:MouseEvent) => {
 
 // 获取产品列表
 const getList = async () => {
-  // const res = await $api.getList();
   const res = await $api.getQQJYproduct('');
   if(res && res['code'] == 200){
     Store.data.recommendList = res.data;
@@ -540,9 +534,9 @@ const onUpdatemount = (value: string) => {
 // 立即下单
 const onSubmit = async () => {
   if(!formData.data.amount){
-    showToast('请输入金额');return;
+    showToast(t('options_options.options_options19'));return;
   }else if(formData.data.amount < Store.data.comboActions[Store.data.comboIndex].minmoney){
-    showToast('金额太小'); return;
+    showToast(t('options_options.options_options20')); return;
   }else{
     $store.commit('setUseLoading',true);
     formData.data.comboInfoId = Store.data.comboActions[Store.data.comboIndex].id;
@@ -574,6 +568,7 @@ const onFinish = () => {
 const Ordershow = ref<boolean>(false);
 
 onMounted(()=>{
+  myChart = echarts.init(document.getElementById('echartsBox'));
   handleLogin();
   getList();
   splitData();
@@ -628,8 +623,8 @@ onUnmounted(()=>{
               <span>{{QQQuotes?QQQuotes.close:0}}</span><span class="riseRate">{{QQQuotes?QQQuotes['riseRate']:0}}%</span></div>
           </div>
           <div class="price">
-            <div>24H High:{{ Number(QQQuotes?QQQuotes.high:0.00).toFixed(5) }}</div>
-            <div>24H Low:{{ Number(QQQuotes?QQQuotes.low:0.00).toFixed(5) }}</div>
+            <div>24H {{ $t('options_options.options_options28') }}:{{ Number(QQQuotes?QQQuotes.high:0.00).toFixed(5) }}</div>
+            <div>24H {{ $t('options_options.options_options29') }}:{{ Number(QQQuotes?QQQuotes.low:0.00).toFixed(5) }}</div>
           </div>
         </div>
 
@@ -655,11 +650,11 @@ onUnmounted(()=>{
 
     <section class="history-wrap">
         <div class="history-box">
-          <div class="history-tit">BuySell/Volume</div>
-          <div class="history-ico"><van-icon name="clock-o" /> History</div>
+          <div class="history-tit">{{ $t('options_options.options_options21') }}</div>
+          <div class="history-ico"><van-icon name="clock-o" /> {{ $t('options_options.options_options22') }}</div>
         </div>
         <div class="history-title">
-          <p>Time</p><p>Direction</p><p>Price</p><p>Quantity</p>
+          <p>{{ $t('options_options.options_options23') }}</p><p>{{ $t('options_options.options_options24') }}</p><p>{{ $t('options_options.options_options25') }}</p><p>{{ $t('options_options.options_options26') }}</p>
         </div>
         <div class="history-info">
           <!-- left -->
@@ -681,12 +676,12 @@ onUnmounted(()=>{
         </div>
     </section>
     <section class="buy-wrap">
-      <div class="buy-btn" @click="Store.data.show = true">Delegate now</div>
+      <div class="buy-btn" @click="Store.data.show = true">{{ $t('options_options.options_options27') }}</div>
     </section>
 
     <div class="cus-sheet">
       <!-- buy Control  -->
-      <van-action-sheet v-model:show="Store.data.show" title="確認訂單">
+      <van-action-sheet v-model:show="Store.data.show" :title="$t('options_options.options_options1')">
         <!-- 说明按钮 -->
         <div class="buy-tip" @click="Store.data.showTip = true"><van-icon name="warning" size="25" color="#F7931A" /></div>
         <div class="buy-content">
@@ -697,7 +692,7 @@ onUnmounted(()=>{
                 <img :src="Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].Ioc:'#'" :alt="Store.data.recommendList[Store.data.proIndex].name">
                 <div class="buy-info">
                   <p class="buy-name">{{Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].name:'USDT'}} </p>
-                  <p class="buy-flog">buy <van-tag color="#00c6931a" :text-color="!formData.data.ZD?'#00C693':'red'">{{!formData.data.ZD?'涨':'跌'}}</van-tag></p>
+                  <p class="buy-flog">buy <van-tag color="#00c6931a" :text-color="!formData.data.ZD?'#00C693':'red'">{{!formData.data.ZD?`${$t('options_options.options_options2')  }`:`${$t('options_options.options_options3')  }`}}</van-tag></p>
                 </div>
               </div>
               <div class="buy-time"><van-icon name="clock-o" color="#333333" />  {{ Store.data.comboInfo }}</div>
@@ -705,22 +700,22 @@ onUnmounted(()=>{
             <van-divider />
 
             <div class="buy-card">
-              <p class="buy-card-tit">選擇時間</p>
+              <p class="buy-card-tit">{{$t('options_options.options_options4')}}</p>
               <div class="buy-card-item">
                 <div class="buy-card-select low3" @click="showTimeCard = true" >
                   <van-icon name="clock-o" color="#333333"  />{{ Store.data.comboInfo }}<van-icon name="arrow-down" color="#333333" />
                 </div>
-                <div class="buy-card-state" :class="{'active':!formData.data.ZD}" @click="formData.data.ZD = 0">涨</div>
-                <div class="buy-card-state" :class="{'active':formData.data.ZD }" @click="formData.data.ZD = 1">跌</div>
+                <div class="buy-card-state" :class="{'active':!formData.data.ZD}" @click="formData.data.ZD = 0">{{$t('options_options.options_options2')}}</div>
+                <div class="buy-card-state" :class="{'active':formData.data.ZD }" @click="formData.data.ZD = 1">{{$t('options_options.options_options3')}}</div>
               </div>
             </div>
 
             <div class="buy-card">
-              <p class="buy-card-tit">價格範圍</p>
+              <p class="buy-card-tit">{{$t('options_options.options_options5')}}</p>
               <div class="buy-card-item">
                 <div class="buy-card-select low1" @click="showRangeCard = true">
                   <p class="buy-card-flag" :class="{'Dsy':formData.data.ZD}">
-                    <van-icon :name="!formData.data.ZD?'plus':'minus'" :color="!formData.data.ZD?'#00C693':'red'" /> {{!formData.data.ZD?'涨':'跌'}} | >0.001%</p>
+                    <van-icon :name="!formData.data.ZD?'plus':'minus'" :color="!formData.data.ZD?'#00C693':'red'" /> {{!formData.data.ZD?`${$t('options_options.options_options2')}`:`${$t('options_options.options_options3')}`}} | >0.001%</p>
                   <p class="buy-card-txt">(*{{!Store.data.comboActions.length?'xxx':Store.data.comboActions[Store.data.comboIndex].ratio}})</p>
                   <van-icon name="arrow-down" color="#333333" />
                 </div>
@@ -728,7 +723,7 @@ onUnmounted(()=>{
             </div>
 
             <div class="buy-card">
-              <p class="buy-card-tit">購買金額</p>
+              <p class="buy-card-tit">{{$t('options_options.options_options6')}}</p>
               <div class="buy-card-item">
                 <div class="buy-card-select price-left">
                   <!-- <p class="buy-card-logo">
@@ -748,8 +743,8 @@ onUnmounted(()=>{
                 </div>
               </div>
             </div>
-            <div class="earnings">預期收益：<span>{{Store.data.ratio}}</span></div>
-            <van-button type="primary" color="#3C5FE7" block @click="onSubmit">確認下單</van-button>
+            <div class="earnings">{{$t('options_options.options_options7')  }}:<span>{{Store.data.ratio}}</span></div>
+            <van-button type="primary" color="#3C5FE7" block @click="onSubmit">{{$t('options_options.options_options8')  }}</van-button>
             </div>
           </div>
 
@@ -767,8 +762,8 @@ onUnmounted(()=>{
       <van-action-sheet v-model:show="showRangeCard" @select="showRangeCard = false" close-on-click-action>
         <div class="buy-Range-list">
           <div class="buy-Range-item" @click="showRangeCard = false">
-            <span class="buy-Range-flog" :class="{'Dsy':formData.data.ZD}">{{ !formData.data.ZD?'涨':'跌' }} |>0.001%。</span>
-            <span class="buy-Range-info">回报率 {{ Store.data.comboActions[Store.data.comboIndex].ratio }}</span>
+            <span class="buy-Range-flog" :class="{'Dsy':formData.data.ZD}">{{ !formData.data.ZD?`${$t('options_options.options_options2')  }`:`${$t('options_options.options_options3')  }` }} |>0.001%。</span>
+            <span class="buy-Range-info">{{$t('options_options.options_options9')  }} {{ Store.data.comboActions[Store.data.comboIndex].ratio }}</span>
           </div>
         </div>
       </van-action-sheet>
@@ -777,7 +772,7 @@ onUnmounted(()=>{
     <van-overlay :show="Store.data.sildershow" @click="handlemouseClick" :lazy-render="false">
       <div class="recommend-wrap" id="recommend-wrap">
         <div class="recommend-list">
-          <div class="title"><span>現貨行情</span></div>
+          <div class="title"><span>{{$t('options_options.options_options10')  }}</span></div>
           <div class="recommend-item" v-for="(item,index) in Store.data.recommendList" :key="item.id" @click="onChangeList">
             <div class="mask" :class="{'red':item.riseRate < 0}" :data-value="item.MJname" :data-name="item.ZSname" :data-index="index" :data-id="item.id" ></div>
             <div class="name"><span>{{item.name}}</span><span class="subname">/{{item.ZSname.split('/')[1]}}</span></div>
@@ -792,7 +787,7 @@ onUnmounted(()=>{
       <div class="order-wrap">
         <div class="order-layout">
           <div class="order-head">
-            <span>订单信息</span>
+            <span>{{$t('options_options.options_options11')  }}</span>
             <van-icon class="order-off" size="20" name="cross" @click="Ordershow = false" />
           </div>
           <div class="order-main">
@@ -810,11 +805,11 @@ onUnmounted(()=>{
             </div>
             
             <div class="order-info">
-              <div class="order-item"><div class="left">方向</div><div class="right green">{{!formData.data.ZD?'涨':'跌'}}|>{{Store.data.comboActions[Store.data.comboIndex].ratio}}%</div></div>
-              <div class="order-item"><div class="left">金额</div><div class="right">{{formData.data.amount}} USDT</div></div>
-              <div class="order-item"><div class="left">執行價</div><div class="right">{{  QQQuotes ? QQQuotes.close : 0 }}</div></div>
-              <div class="order-item"><div class="left">盈利率</div><div class="right"></div></div>
-              <div class="order-item"><div class="left">盈利</div><div class="right">
+              <div class="order-item"><div class="left">{{$t('options_options.options_options12')  }}</div><div class="right green">{{!formData.data.ZD?`${$t('options_options.options_options2')  }`:`${$t('options_options.options_options3')  }`}}|>{{Store.data.comboActions[Store.data.comboIndex].ratio}}%</div></div>
+              <div class="order-item"><div class="left">{{$t('options_options.options_options13')  }}</div><div class="right">{{formData.data.amount}} USDT</div></div>
+              <div class="order-item"><div class="left">{{$t('options_options.options_options14')  }}</div><div class="right">{{  QQQuotes ? QQQuotes.close : 0 }}</div></div>
+              <div class="order-item"><div class="left">{{$t('options_options.options_options15')  }}</div><div class="right"></div></div>
+              <div class="order-item"><div class="left">{{$t('options_options.options_options16')  }}</div><div class="right">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="20px" height="26px" viewBox="0 0 24 30" xml:space="preserve">
                   <rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2">
                     <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s" dur="0.6s" repeatCount="indefinite"></animate>
@@ -838,8 +833,8 @@ onUnmounted(()=>{
             </div>
           </div>
           <div class="order-foot">
-            <div class="buttom checkOrder" @click="$router.push('/options/trade')">查看订单</div>
-            <div class="buttom continue" @click="handleContinue">继续下单</div>
+            <div class="buttom checkOrder" @click="$router.push('/options/trade')">{{$t('options_options.options_options17')  }}</div>
+            <div class="buttom continue" @click="handleContinue">{{$t('options_options.options_options18')  }}</div>
           </div>
         </div>
       </div>
@@ -1336,11 +1331,13 @@ onUnmounted(()=>{
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 10px;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
         width: 120px;
         height: 40px;
         line-height: 40px;
+        white-space: nowrap;
+        overflow: hidden;
       }
       .checkOrder{
         color: #4d4d4d;

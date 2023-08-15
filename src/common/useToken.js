@@ -39,21 +39,9 @@ export function useToken() {
     token.flag = false;
   }
 
-  return { setToken, getToken, removeToken };
+  function getLang(){
+    return localStorage.getItem('language') || lang.split('-')[0] || 'zh';
+  }
+
+  return { setToken, getToken, removeToken ,getLang};
 }
-
-// import { useToken } from './useToken.js';
-
-// export default {
-//   mounted() {
-//     const { setToken, getToken, removeToken } = useToken();
-//     // 设置 Token
-//     setToken('your_token_value');
-//     // 获取 Token
-//     const token = getToken();
-//     console.log(token.value);
-//     console.log(token.expiryDate);
-//     // 移除 Token
-//     removeToken();
-//   },
-// };

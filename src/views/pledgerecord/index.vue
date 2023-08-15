@@ -7,7 +7,8 @@ export default {
 import { ref, reactive, onMounted } from "vue";
 import api from "../../https";
 import { showToast } from "vant";
-
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 //质押订单接口：
 let datalist = reactive<any>({ data: [] });
 
@@ -16,7 +17,8 @@ let datalist = reactive<any>({ data: [] });
 
 const getzyorder = async (index: any = 3, page: any = 1) => {
   const sbacxk = await api.getzyorder(index, page);
-  datalist.data = sbacxk.rows;
+  if(sbacxk && sbacxk.code == 200){
+    datalist.data = sbacxk.rows;
   // console.log(sbacxk, "sbcxk");
   datalist.data.map((i: any) => {
     i.value = "";
@@ -24,13 +26,15 @@ const getzyorder = async (index: any = 3, page: any = 1) => {
     //   zy1.value=true
     // }
   });
+  }
+  
 };
 const value = ref<any>("");
 const navIndex = ref<number>(3);
 const navArray = [
   // { name: "轉賬中", index: 2 },
-  { name: "進行中", index: 3 },
-  { name: "已完成", index: 4 },
+  { name: t('pledgerecord_index.pledgerecord_index_navArray.pledgerecord_index_navArray1'), index: 3 },
+  { name: t('pledgerecord_index.pledgerecord_index_navArray.pledgerecord_index_navArray2'), index: 4 },
 ];
 //tab切换
 const onChangeNav = (_ev: any) => {
@@ -46,7 +50,7 @@ const Continuingpledge=async(_ev:any)=>{
   if(_ev.value!=""){
     const resdata=await api.postsubmits(_ev.TCID,_ev.value,_ev.id)
     // console.log(resdata,'成功');
-    if(resdata.code==200){
+    if(resdata && resdata.code == 200){
       showToast(resdata.msg)
       setTimeout(()=>{
         getzyorder(3, 1);
@@ -96,47 +100,47 @@ onMounted(() => {
             alt=""
           />
         </div>
-        <div>暫無記錄</div>
+        <div>{{ $t('pledgerecord_index.pledgerecord_index1') }}</div>
       </div>
       <div class="recordContent" v-for="items in datalist.data" :key="items.id">
         <div class="recordtitle">
-          <div class="usdt_title">USDT質押挖礦</div>
-          <div class="doing" v-if="items.State == 0">转账中</div>
-          <div class="doing" v-if="items.State == 1">取消订单</div>
-          <div class="doing" v-if="items.State == 2">转账失败</div>
-          <div class="doing" v-if="items.State == 3">进行中</div>
-          <div class="doing" v-if="items.State == 4">已完成</div>
+          <div class="usdt_title">USDT{{ $t('pledgerecord_index.pledgerecord_index2') }}</div>
+          <div class="doing" v-if="items.State == 0">{{ $t('pledgerecord_index.pledgerecord_index3') }}</div>
+          <div class="doing" v-if="items.State == 1">{{ $t('pledgerecord_index.pledgerecord_index4') }}</div>
+          <div class="doing" v-if="items.State == 2">{{ $t('pledgerecord_index.pledgerecord_index5') }}</div>
+          <div class="doing" v-if="items.State == 3">{{ $t('pledgerecord_index.pledgerecord_index6') }}</div>
+          <div class="doing" v-if="items.State == 4">{{ $t('pledgerecord_index.pledgerecord_index7') }}</div>
         </div>
         <div class="itemsbcxk" v-if="items.tctype==3||items.tctype==4">
-          <div>USDT質押挖礦</div>
-          <div>质押失败</div>
+          <div>USDT{{ $t('pledgerecord_index.pledgerecord_index2') }}</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index8') }}</div>
         </div>
         <div class="itemsbcxk">
-          <div>流動性要求</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index9') }}</div>
           <div>{{ items.maxmoney }} USDT</div>
         </div>
         <div class="itemsbcxk">
-          <div>我的質押</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index10') }}</div>
           <div>{{ items.money_X }} USDT</div>
         </div>
         <div class="itemsbcxk"  v-if="items.tctype==3||items.tctype==4">
-          <div>还需质押</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index11') }}</div>
           <div>{{ items.maxmoney - items.money_X }} USDT</div>
         </div>
         <div class="itemsbcxk">
-          <div>總週期</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index12') }}</div>
           <div>{{ items.days }} 天</div>
         </div>
         <div class="itemsbcxk">
-          <div>挖礦收益</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index13') }}</div>
           <div>{{ items.SY }} ETH</div>
         </div>
         <div class="itemsbcxk">
-          <div>開始時間</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index14') }}</div>
           <div>{{ items.ztime1 }}</div>
         </div>
         <div class="itemsbcxk">
-          <div>結束時間</div>
+          <div>{{ $t('pledgerecord_index.pledgerecord_index15') }}</div>
           <div>{{ items.ztime2 }}</div>
         </div>
         <div class="itemsbcxk"  v-if="items.tctype==3||items.tctype==4">
@@ -149,13 +153,13 @@ onMounted(() => {
               <van-field
                 style="min-width:50px"
                 v-model="items.value"
-                placeholder="请输入金额"
+                :placeholder="$t('pledgerecord_index.pledgerecord_index16')"
                 maxlength="6"
                 required
               />
             </van-cell-group>
           </div>
-          <div class="ssscxk" @click="Continuingpledge(items)">继续质押</div>
+          <div class="ssscxk" @click="Continuingpledge(items)">{{ $t('pledgerecord_index.pledgerecord_index17') }}</div>
         </div>
       </div>
     </div>

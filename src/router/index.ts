@@ -10,7 +10,11 @@ import about from './modules/about'
 import guidance from './modules/guidance'
 import proclamation from './modules/proclamation'
 import pledgerecord from './modules/pledgerecord'
-import { useToken } from '@/common/useToken';
+import { useToken  } from '@/common/useToken'
+import { getMessage } from '@/lang'
+const { getToken, getLang } = useToken();
+
+const message:any = getMessage();
 /**
  * key : 多语言翻译字段，不添加显示标题为空
  * back ：设置为true，使用带返回按钮的顶部导航栏
@@ -64,17 +68,16 @@ const router = createRouter({
 	},
 })
 
-const { getToken} = useToken();
 
 router.beforeEach((to, from, next) => {
-
+  const language = getLang();
   // 判断用户是否已登录 或 已过期
   const isLoggedIn = getToken(); 
   if(isLoggedIn.value || to.meta['requiresAuth']){
     next();
   }else{
     if(!isLoggedIn.flag && from.name != 'home'){
-      showToast('登录过期,请重新登录');
+      showToast(message[language].cusGlobal.state13);
       setTimeout(() => {
         if(from.path == "/home"){
           next(false);
@@ -82,7 +85,10 @@ router.beforeEach((to, from, next) => {
         next({path:"/home"});
       }, 500);
     }else{
-      showToast('请先连接钱包');
+      if(to.name == '404'){
+        return next();
+      }
+      showToast(message[language].cusGlobal.state14);
       next(false);
     }
   }  
@@ -91,6 +97,8 @@ router.beforeEach((to, from, next) => {
 router.afterEach(() => {
 
 });
+
+
 
 
 export default router;

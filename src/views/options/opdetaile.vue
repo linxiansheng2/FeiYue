@@ -6,6 +6,8 @@ export default {
 <script setup lang="ts">
 import { ref, reactive ,onMounted} from 'vue'
 import $api  from '@/https';
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
 const loading = ref<boolean>(false);
 const Store:any = reactive({data:{
     finished:false,     //是否已加载完成，加载完成后不再触发 load 事件
@@ -41,7 +43,8 @@ const onLoad = async () => {
         <van-list
             v-model:loading="Store.data.loading"
             :finished="Store.data.finished"
-            finished-text="没有更多了"
+            :finished-text="$t('mining_faq.mining_faq1')"
+            :loading-text = "$t('vantGlobal.loadingtext')"
             @load="onLoad"
             >
             <van-cell class="bulletin-cell" v-for="item in Store.data.bulletinList" :key="item.id" :to="`/options/details/${item.id}`">

@@ -4,46 +4,64 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import useClipboard from "vue-clipboard3";
 import { showToast } from "vant";
 import "vant/es/toast/style";
 import api from "../../https";
-import { Popup } from 'vant';
+import { Popup } from "vant";
 import { useRouter, useRoute } from "vue-router";
+import { useStore } from "vuex";
+import QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
+const $store = useStore();
+const userStore = computed(() => $store.state.userinfo);
+console.log(userStore, "sbcxk", userStore.value.address);
+
 const router = useRouter();
 const { toClipboard } = useClipboard();
 const copy1 = async (val: any) => {
+  console.log(val, "dianji");
+  // let cocxk
+  // postyaoqing(userStore.value.address,userStore.value.id)
   try {
     await toClipboard(val);
-    showToast("复制成功");
+    showToast(t('share_index.share_index31'));
     // console.log("chenggl");
   } catch (e) {
     // Toast.fail(e)
-    showToast("复制失败");
+    showToast(t('share_index.share_index32'));
     // console.log("shibai");
   }
 };
 const copy2 = async (val: any) => {
+  console.log(val, "fuzhi2");
+
   try {
     await toClipboard(val);
-    showToast("复制成功");
+    showToast(t('share_index.share_index31'));
     // console.log("chenggl");
   } catch (e) {
     // Toast.fail(e)
-    showToast("复制失败");
+    showToast(t('share_index.share_index32'));
     // console.log("shibai");
   }
 };
+//邀请接口
+// const postyaoqing = async (address: any, ycode: any) => {
+//   const res = await api.postyaoqing(address, ycode);
+//   console.log(res, "yaoqingchenggong");
+// };
 //跳详情
 const toxiangqing = () => {
   router.push("/guidance");
 };
 //二维码弹出
-const show= ref<boolean>(false);
+const show = ref<boolean>(false);
 const erweimatanchu = () => {
   // console.log("saaa");
-
   show.value = true;
 };
 // 分享弹出
@@ -57,8 +75,8 @@ const flags = ref<boolean>(false);
 let data = reactive<any>({ data: {} });
 const getamout = async () => {
   const datas = await api.getamout();
-  // console.log(datas, "邀请数据");
-  if (datas.code == 200) {
+  console.log(datas, "邀请数据");
+  if (datas && datas.code == 200) {
     data.data = datas.data;
     flags.value = true;
   }
@@ -68,7 +86,7 @@ let sbdata = reactive<any>({ data: {} });
 const getrebeta = async () => {
   const sbcxk = await api.getrebeta();
   // console.log(sbcxk, "返佣比例");
-  if (sbcxk.code == 200) {
+  if (sbcxk && sbcxk.code == 200) {
     sbdata.data = sbcxk.rebate;
     flags.value = true;
   }
@@ -77,20 +95,43 @@ const getrebeta = async () => {
 const showa = ref<boolean>(false);
 const showPopup = () => {
   // console.log('aaaa');
-  
+
   showa.value = true;
 };
 //问号
-const datasa=reactive<any>({data:{}})
-const getauxii=async()=>{
-  const ress=await api.getauxii()
+const datasa = reactive<any>({ data: {} });
+const getauxii = async () => {
+  const ress = await api.getauxii();
   // console.log(ress,'sb');
-  if(ress.code==200){
-    datasa.data=ress.data1
+  if (ress && ress.code == 200) {
+    datasa.data = ress.data1;
   }
+};
+
+//生成图片
+const convertToImage=async()=>{
+  const element:any = document.getElementById('haibaobao');
+
+  try{
+   // 使用html2canvas将HTML元素转换为canvas
+   const canvas = await html2canvas(element)
+
+    // 创建一个临时链接
+    const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+           // 设置下载的文件名
+           link.download = 'screenshot.png';
+           link.click();
+  }catch(error){
+       // 处理错误
+       console.error('转换为图片时发生错误:', error);
+  }
+
 }
 onMounted(() => {
-  getamout(), getrebeta(),getauxii();
+  getamout();
+  getrebeta();
+  getauxii();
 });
 </script>
 
@@ -105,34 +146,34 @@ onMounted(() => {
           <img class="share_img2" src="../../assets/share/wenhao.png" alt="" />
         </div>
       </div>
-      <div class="share-top-tip">推薦好友</div>
-      <div class="share-top-tip2">高達 5 %APR 兌換返利</div>
+      <div class="share-top-tip">{{ $t('share_index.share_index1') }}</div>
+      <div class="share-top-tip2">{{ $t('share_index.share_index2') }} 5 %APR {{ $t('share_index.share_index3') }}</div>
       <div class="share-step">
         <div class="share_cxk">
           <img class="share_img1" src="../../assets/share/tuijian.png" alt="" />
-          <div><span>推薦好友</span></div>
+          <div><span>{{ $t('share_index.share_index4') }}</span></div>
         </div>
         <div class="line"></div>
         <div class="share_cxk">
           <img class="share_img1" src="../../assets/share/pengyou.png" alt="" />
-          <div><span>朋友收入</span></div>
+          <div><span>{{ $t('share_index.share_index5') }}</span></div>
         </div>
         <div class="line"></div>
         <div class="share_cxk">
           <img class="share_img1" src="../../assets/share/duihuan.png" alt="" />
-          <div><span>兑换返利</span></div>
+          <div><span>{{ $t('share_index.share_index6') }}</span></div>
         </div>
       </div>
     </div>
     <div class="yao_bottom">
       <div class="share-code-box">
-        <div class="share-code-top">推薦鏈接</div>
+        <div class="share-code-top">{{ $t('share_index.share_index7') }}</div>
         <div class="share-code-bottom">
           <div class="share_list">
-            <div>推廣碼</div>
+            <div>{{ $t('share_index.share_index8') }}</div>
             <div class="code">
               <div>{{ data.data.Invitationcode }}</div>
-              <div @click="copy1('P322434')">
+              <div @click="copy1(data.data.Invitationcode)">
                 <img
                   class="code_copy"
                   src="../../assets/share/cope.png"
@@ -142,9 +183,16 @@ onMounted(() => {
             </div>
           </div>
           <div class="share_list">
-            <div>推薦鏈接</div>
-            <div class="code" @click="copy2('https://jvuey.com?yCode=P322434')">
-              <div class="code_yao">https://jvuey.com?yCode=P322434</div>
+            <div>{{ $t('share_index.share_index9') }}</div>
+            <div
+              class="code"
+              @click="
+                copy2(
+                  'https://www1.feiyueadmin.com/#/' + data.data.Invitationcode
+                )
+              "
+            >
+              <div class="code_yao">https://www1.feiyueadmin.com/#/</div>
               <div>
                 <img
                   class="code_copy"
@@ -158,15 +206,15 @@ onMounted(() => {
         <div class="share-generation">
           <div class="lists">
             <div class="lists_shu">{{ sbdata.data.rebate1 }}%</div>
-            <div class="lists_yi">一代收益</div>
+            <div class="lists_yi">{{ $t('share_index.share_index10') }}</div>
           </div>
           <div class="lists">
             <div class="lists_shu">{{ sbdata.data.rebate2 }}%</div>
-            <div class="lists_yi">二 代收益</div>
+            <div class="lists_yi">{{ $t('share_index.share_index11') }}</div>
           </div>
           <div class="lists">
             <div class="lists_shu">{{ sbdata.data.rebate3 }}%</div>
-            <div class="lists_yi">三代收益</div>
+            <div class="lists_yi">{{ $t('share_index.share_index12') }}</div>
           </div>
         </div>
         <div class="post-qr">
@@ -177,7 +225,7 @@ onMounted(() => {
               alt=""
             />
           </div>
-          <div class="post_haibao" @click="fenxianghaibao">海報</div>
+          <div class="post_haibao" @click="fenxianghaibao">{{ $t('share_index.share_index13') }}</div>
         </div>
       </div>
       <div class="share-wrap">
@@ -194,7 +242,7 @@ onMounted(() => {
                 src="../../assets/share/swipe.png"
                 alt=""
               /><span class="swipe_span"
-                >❤️恭 喜 ❤️0x7AD0***SsK2 今日累计获得返佣 $6000
+                >❤️{{ $t('share_index.share_index14') }} ❤️0x7AD0***SsK2 {{ $t('share_index.share_index15') }} $6000
               </span>
             </div>
           </van-swipe-item>
@@ -205,7 +253,7 @@ onMounted(() => {
                 src="../../assets/share/swipe.png"
                 alt=""
               /><span class="swipe_span"
-                >❤️恭 喜 ❤️0x1Ad0***SsK2 今日累计获得返佣 $3000
+                >❤️{{ $t('share_index.share_index14') }} ❤️0x1Ad0***SsK2 {{ $t('share_index.share_index15') }} $3000
               </span>
             </div></van-swipe-item
           >
@@ -216,7 +264,7 @@ onMounted(() => {
                 src="../../assets/share/swipe.png"
                 alt=""
               /><span class="swipe_span"
-                >❤️恭 喜 ❤️0a3AD0***SsK2 今日累计获得返佣 $61000
+                >❤️{{ $t('share_index.share_index14') }} ❤️0a3AD0***SsK2 {{ $t('share_index.share_index15') }} $61000
               </span>
             </div></van-swipe-item
           >
@@ -227,7 +275,7 @@ onMounted(() => {
                 src="../../assets/share/swipe.png"
                 alt=""
               /><span class="swipe_span"
-                >❤️恭 喜 ❤️0l9Ad0***SsK2 今日累计获得返佣 $15000
+                >❤️{{ $t('share_index.share_index14') }} ❤️0l9Ad0***SsK2 {{ $t('share_index.share_index15') }} $15000
               </span>
             </div></van-swipe-item
           >
@@ -235,9 +283,9 @@ onMounted(() => {
       </div>
       <div class="share-rebateBox">
         <div class="titlea">
-          <div class="title_shouyi">我的收益</div>
+          <div class="title_shouyi">{{ $t('share_index.share_index16') }}</div>
           <div class="title_xiangqing" @click="toxiangqing">
-            詳情<van-icon name="arrow" />
+            {{ $t('share_index.share_index17') }}<van-icon name="arrow" />
           </div>
         </div>
         <div class="contents">
@@ -246,29 +294,29 @@ onMounted(() => {
               <div class="fanfan">
                 <span>{{ data.data.RebateAmount }}</span>
               </div>
-              <div class="wodea"><span>我的返佣</span></div>
+              <div class="wodea"><span>{{ $t('share_index.share_index18') }}</span></div>
             </div>
             <div class="listary">
               <div class="fanfan">
                 <span>{{ data.data.TotalPeople }}</span>
               </div>
-              <div class="wodea"><span>已邀请好友</span></div>
+              <div class="wodea"><span>{{ $t('share_index.share_index19') }}</span></div>
             </div>
           </div>
           <div class="items">
-            <div>今日返佣 (USDT)</div>
+            <div>{{ $t('share_index.share_index20') }} (USDT)</div>
             <div>{{ data.data.Rebateamountoftheday }}</div>
           </div>
           <div class="items">
-            <div>今日交易人數</div>
+            <div>{{ $t('share_index.share_index21') }}</div>
             <div>{{ data.data.Numberofpeopletradedontheday }}</div>
           </div>
           <div class="items">
-            <div>今日交易額</div>
+            <div>{{ $t('share_index.share_index22') }}</div>
             <div>{{ data.data.Transactionamountoftheday }}</div>
           </div>
           <div class="items">
-            <div>今日邀請</div>
+            <div>{{ $t('share_index.share_index23') }}</div>
             <div>{{ data.data.TotalPeopleday }}</div>
           </div>
         </div>
@@ -287,13 +335,14 @@ onMounted(() => {
             alt=""
           />
         </div>
-        <div class="titless">掃碼加入</div>
+        <div class="titless">{{ $t('share_index.share_index24') }}</div>
         <div class="contenssss">
-          <img
+          <!-- <img
             class="contenssssimg"
             src="../../assets/share/erweima1.png"
             alt=""
-          />
+          /> -->
+          <erweima/>
         </div>
         <div class="guantua">
           <img
@@ -303,33 +352,52 @@ onMounted(() => {
           />
         </div>
       </div>
+      <!-- <div><img :src=canvasRef.value alt=""></div> -->
+       <!-- <canvas ref="qrCodeCanvas"></canvas> -->
+       
       <div class="chachaa" @click="show = false">
         <van-icon name="cross" />
       </div>
     </div>
     <!-- 海报 -->
-    <div v-if="shows == true" class="haibaoaa">
-      <img class="haibaoaaimg" src="../../assets/share/haibaoa.png" alt="" />
+   <div  v-if="shows == true" id="haibaobao">
+    <div class="haibaoaa">
+      <!-- <img class="haibaoaaimg" src="../../assets/share/haibao2.png" alt="" /> -->
+      <p class="xinsheng">{{ $t('share_index.share_index25') }}</p>
+      <div class="dinga">
+        <div class="tanse"><p class="tuijian">{{ $t('share_index.share_index26') }} {{ data.data.Invitationcode }}</p></div>
+        <div class="erweim">
+          <div class="erweileft">
+            <div class="erweilog"></div>
+            <div class="erweirigth">
+            <div class="dai">DAI-TEST</div>
+            <div class="shouge">{{ $t('share_index.share_index27') }}</div>
+          </div>
+          </div>
+          
+          <div class="erwaiaa"></div>
+        </div>
+      </div>
     </div>
+   </div>
     <div class="bottom_box" v-if="shows == true">
-      <div class="bottom_quxiao" @click="shows = false">取消</div>
-      <div class="bottom_baocun" @click="shows = false">保存至相冊</div>
+      <div class="bottom_quxiao" @click="shows = false">{{ $t('share_index.share_index28') }}</div>
+      <div class="bottom_baocun" @click="convertToImage()">{{ $t('share_index.share_index29') }}</div>
     </div>
-     <!-- 弹出 -->
-  <!-- <van-popup
+    <!-- 弹出 -->
+    <!-- <van-popup
   v-model:showa='showBottom'
   round
   position="bottom"
   :style="{ height: '30%' }"
 /> -->
     <div class="wenhao_box" v-if="showa">
-        <div class="wenhao_title">{{datasa.data.title  }}</div>
-        <div><img class="wenhaoimg" :src=datasa.data.img alt=""></div>
-        <div v-html=datasa.data.body></div>
-        <div class="wenhaoqueding" @click="showa=false">确定</div>
+      <div class="wenhao_title">{{ datasa.data.title }}</div>
+      <div><img class="wenhaoimg" :src="datasa.data.img" alt="" /></div>
+      <div v-html="datasa.data.body"></div>
+      <div class="wenhaoqueding" @click="showa = false">{{ $t('share_index.share_index30') }}</div>
     </div>
   </div>
- 
 </template>
 
 <style scoped lang="less">
@@ -377,6 +445,7 @@ bady {
   line-height: 16px;
   color: #fff;
   display: flex;
+  margin-left:13px;
 }
 .share_cxk {
   text-align: center;
@@ -661,16 +730,25 @@ bady {
   top: 15px;
   right: 15px;
 }
+#haibaobao{
+  height: 540px;
+  width: 100%;
+}
 .haibaoaa {
   height: 540px;
   position: absolute;
   border-radius: 10px;
   top: 148px;
   left: 14px;
+  width: 93%;
+  background: url(../../assets/share/haibao2.png) no-repeat;
+  background-size: cover;
 }
-.haibaoaaimg {
-  height: 100%;
-}
+// .haibaoaaimg {
+//   height: 100%;
+//   // height: 500px;
+
+// }
 .bottom_box {
   display: flex;
   justify-content: space-between;
@@ -705,48 +783,119 @@ bady {
   font-weight: 700;
   border-radius: 5px;
 }
-.wenhao_box{
+.wenhao_box {
   background: #fff;
   height: 70%;
   position: fixed;
   // display: flex;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    transition-duration: 300ms;
-    transition-timing-function: ease-out;
-    z-index: 10075;
-    border-top-left-radius:20px ;
-    border-top-right-radius:20px ;
-
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  transition-duration: 300ms;
+  transition-timing-function: ease-out;
+  z-index: 10075;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
-.wenhao_title{
+.wenhao_title {
   height: 49px;
-    text-align: center;
-    line-height: 49px;
-    border-bottom: 1px solid #f0f0f0;
-    font-weight: 500;
-    font-size: 16px;
-    color: #333;
+  text-align: center;
+  line-height: 49px;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
 }
-.wenhaoimg{
+.wenhaoimg {
   width: 163px;
   height: 80px;
 }
-.wenhaoqueding{
+.wenhaoqueding {
   position: fixed;
   bottom: 0px;
-    left: 0px;
-    right: 0px;
-      background: #f0f0f0;
-    border-radius: 15px;
-    height: 57px;
-        align-items: center;
+  left: 0px;
+  right: 0px;
+  background: #f0f0f0;
+  border-radius: 15px;
+  height: 57px;
+  align-items: center;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  font-size: 20px;
+  color: #4d4d4d;
+  margin-top: 23px;
+}
+.xinsheng {
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 120%;
+  color: #fff;
+  padding: 31px 45px 31px;
+}
+.dinga {
+  position: absolute;
+  bottom: 0;
+  height: 81px;
+  width: 100%;
+  color: #fff;
+ 
+}
+.tuijian {
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 16px;
+  margin-top: 10px;
+}
+.erweim {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  margin-top: 14px;
+}
+.erweileft {
+  width: 70%;
+  display: flex;
+  align-items: center;
+}
+.tanse{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.erweilog {
+  background-image: url(../../assets/share/log.png);
+  // background-position: 0% 0%;
+  // background-size: 100% 100%;
+  background-repeat: no-repeat;
+  width: 70px;
+  height: 23px;
+}
+.erweirigth{
+  font-size: 12px;
+    color: #fff;
+    line-height: 150%;
+    text-align: left;
+    width: 197px;
+}
+.dai{
+  font-size: 16px;
     font-weight: 500;
-    display: flex;
-    justify-content: center;
-    font-size: 20px;
-    color: #4d4d4d;
-    margin-top: 23px;
+}
+.shouge{
+  font-size: 12px;
+}
+.erwaiaa{
+  background-image: url(../../assets/share/erweiaaa.png);
+  // background-position: 0% 0%;
+  // background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 35px;
+  width: 35px;
+}
+canvas {
+  width: 200px;
+  height: 200px;
 }
 </style>

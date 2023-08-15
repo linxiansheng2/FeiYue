@@ -10,6 +10,7 @@ declare module 'vue' {
     Cuscard: typeof import('./src/components/cuscard.vue')['default']
     Cusfooter: typeof import('./src/components/cusfooter.vue')['default']
     Cusswiper: typeof import('./src/components/cusswiper.vue')['default']
+    Erweima: typeof import('./src/components/erweima.vue')['default']
     Gundong: typeof import('./src/components/gundong.vue')['default']
     Layout: typeof import('./src/components/layout.vue')['default']
     ListScroll: typeof import('./src/components/ListScroll.vue')['default']

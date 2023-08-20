@@ -1,3 +1,4 @@
+// 西班牙
 export default {
     silder:{
       menu1:'Inicio',
@@ -16,7 +17,8 @@ export default {
       menu8_1:'Anuncios de la plataforma',
       menu8_2:'Whitepaper',
       menu8_3:'Términos de servicio',
-      clearcache:'Borrar caché'
+      clearcache:'Borrar caché',
+      score: 'Puntuación de crédito'
     },
     menu:{
       navAsset:'Centro de activos',
@@ -64,7 +66,8 @@ export default {
       platformInfo :'Socios',
       cztitle:'Depósitos rápidos',
       czsubtitle:'Rápido y seguro',
-      cz:'Depositar'
+      cz:'Depositar',
+      home01:'Comenzar a comerciar'
     },
     assetcenter_index:{
       assetcenter1:'Cuenta de activos totales',
@@ -313,7 +316,11 @@ export default {
       share_index29:'Guardar en álbum',
       share_index30:'Confirmar',
       share_index31:'Copiado con éxito',
-      share_index32:'Error al copiar'
+      share_index32:'Error al copiar',
+      share_index33:'Gráfico de distribución de dividendos',
+      share_index34:'Disfruta de hasta un 5% de dividendos',
+      share_index35:'Gráfico de distribución de dividendos',
+      share_index36:'Disfruta de las recompensas del equipo'
     },
     guidance_index:{
       guidance_index1:'Registro de invitaciones',
@@ -357,6 +364,40 @@ export default {
         pledgerecord_index_navArray1:'En progreso',
         pledgerecord_index_navArray2:'Completado'
       }
+    },
+    about_index:{
+      about_index1: 'Rápido, seguro, fácil intercambio de más de 600 criptomonedas',
+      about_index2: 'Plataforma líder mundial en activos digitales',
+      about_index3: 'Plataforma de intercambio internacional',
+      about_index4: 'El único exchange completamente regulado y tokenizado con capacidad cuantitativa, velocidad, flexibilidad y una amplia gama de activos que los inversores necesitan. Nuestro sistema de emparejamiento de intercambio garantiza que todas las operaciones principales se completen en menos de 100 milisegundos. Características de comercio destacadas como orden por gráfico K, superposición y combinación de posiciones, múltiples límites de ganancia y pérdida, liquidación dual de precios, reversión con un solo clic, etc. ayudan a los traders a tomar decisiones más informadas.',
+      about_index32: 'Tarifas de intercambio tan bajas como',
+      about_index5: 'Pares de intercambio',
+      about_index6: 'Regiones globales',
+      about_index7: 'Soporte de servicio',
+      about_index8: 'Acerca de nosotros',
+      about_index9: 'Nuestro objetivo final es capacitar los servicios financieros de criptomonedas a través del algoritmo de trading de alta frecuencia inteligente ChatGPT, creando así una plataforma de intercambio descentralizada basada en la comunidad y operativa de manera transparente. Nuestra herramienta principal es el token nativo WEB3.0 Token basado en la plataforma WEB3.0.',
+      about_index10: 'ChatGPT, los tokens DAI existentes se mapearán 1:1 a nuestro token nativo. Podemos ofrecer una solución blockchain de negocios más completa y única, brindando capacidades de trading de alta frecuencia y soluciones de innovación financiera para criptomonedas, junto con la economía de tokens, brindando mayor dinamismo y participación a los negocios y la industria financiera globales.',
+      about_index11: 'Plataforma líder mundial en activos digitales',
+      about_index12: 'Contamos con un destacado equipo de ingenieros de programación central, expertos en matemáticas, programación informática, derecho, economía, tecnología ChatGPT y otras teorías académicas, y poseemos habilidades técnicas líderes en la construcción y optimización de la arquitectura de la plataforma, incluyendo el desarrollo de sistemas y herramientas para obtener datos de mercado, análisis de tendencias, ejecución de simulaciones de trading, inserción y gestión de órdenes, soporte de trading en tiempo real, gestión de riesgos y servicios posteriores a la transacción. Por lo tanto, nuestra plataforma puede implementar una amplia variedad de estrategias automatizadas y cuantitativas en diversas categorías de activos.',
+      about_index13: 'La base de nuestra plataforma es la aplicación de tecnología de trading automatizada, lo que significa que utilizamos el modelo AMM líder para lograr un emparejamiento automático de operaciones. Al mismo tiempo, nos enfocamos en expandir nuestra capacidad de trading cuantitativo, aprovechando plenamente los grandes datos y la tecnología de inteligencia artificial de ChatGPT para optimizar nuestros modelos y brindar a nuestros usuarios oportunidades de rendimiento superiores al promedio del mercado.',
+      about_index14: '¿Por qué elegirnos?',
+      about_index15: 'Política de privacidad',
+      about_index16: 'Seguridad máxima mediante la creación de direcciones ilimitadas, autenticación de dos factores (2FA) y protección multicapa',
+      about_index17: 'Seguridad de los fondos',
+      about_index18: 'Las criptomonedas proporcionan total anonimato y nadie más que usted tiene acceso a su información',
+      about_index19: 'Cumplimiento legal',
+      about_index20: 'Nos enorgullece tener la licencia financiera MSB emitida por el Centro de Transacciones Financieras y Análisis de Informes',
+      about_index21: 'Servicio al cliente',
+      about_index22: 'Servicio de atención al cliente en línea las 24 horas, que brinda asesoramiento y resuelve problemas de los usuarios de manera oportuna',
+      about_index23: 'Blog',
+      about_index24: 'Actualizaciones y análisis de blockchain y criptomonedas desde el punto de vista de DAI-TEST',
+      about_index25: 'Comercio cómodo, en cualquier momento y en cualquier lugar',
+      about_index26: 'Totalmente compatible con múltiples terminales, satisfaciendo las necesidades de comercio en diversos escenarios',
+      about_index27: 'Ver cotizaciones en tiempo real en cualquier momento',
+      about_index28: 'Compra y vende BTC, ETH, XRP, OKB y otros activos digitales fácilmente',
+      about_index29: 'Recibe alertas de cambio de precio de las criptomonedas que te interesan',
+      about_index30: 'Ver precios al contado, futuros y opciones de Bitcoin',
+      about_index31: 'Comparar precios de criptomonedas en diferentes exchanges'
     },
     undefined:{
       undefined:'La página no existe'

@@ -11,6 +11,8 @@ import $api  from '../https'
 import { useStore } from 'vuex'
 const $store = useStore();
 const router = useRouter();
+$store.commit('setLoading',true);
+const WebConfig = computed(()=>$store.state.webconfig);
 // 首页数据
 const Store:any = reactive({data:{
   loading:false,  //加载
@@ -19,14 +21,13 @@ const Store:any = reactive({data:{
   cooperate:[],   //合作伙伴
   czmoneylist:[], //充值渠道
   mediaData:[
-  {txt:'LOGOIPSUM002 has, as a reputable and one of the most well-known crypto platforms'},
-  {txt:'Heavy hitter when it comes to the sheer amount of coins available, LOGOIPSUM002 provides access to a wide library of altcoins at low fees.'},
+  {txt:`${WebConfig.value.h5_title}`+' has, as a reputable and one of the most well-known crypto platforms'},
+  {txt:'Heavy hitter when it comes to the sheer amount of coins available,'+`${WebConfig.value.h5_title}`+  ' provides access to a wide library of altcoins at low fees.'},
   {txt:'comes to the sheer amount of coins available'},
-  {txt:'comes to LOGOIPSUM002 provides access to a wide library of '},
+  {txt:'comes to ' +`${WebConfig.value.h5_title}`+ ' provides access to a wide library of '},
   ],              //媒体评价
   mediaBody:'',   //媒体评价文本
   active:0,       //行情索引
-  hotcoinactive:0,//二级行情
   czmoneyIndex:0, //充值渠道索引
   swiperIndex:1,  //媒体评价索引
   showSelect:false,//充值下拉表
@@ -36,13 +37,12 @@ const Store:any = reactive({data:{
 }})
 
 // 充值登录后显示
-const loginStore = computed(()=>$store.state.login);
+const loginStore = false
 const onDeposit = (event:any) => {
   const {dataset} = event.target;
   Store.data.czmoneyIndex = dataset.index-1;
   Store.data.showSelect = false
 }
-
 // 跳转充值
 const onCzmoney = () => {
   router.push({
@@ -60,10 +60,27 @@ const onChange = (index:number) => {
   Store.data.mediaBody = Store.data.mediaData[index].txt;
 }
 
-// 切换行情
-const onClickTab = async (event:Event|any) => {
-  const res = await $api.getQQJYproduct(event.name+1);
-  Store.data.productList = res.data;
+// 获取产品
+const getQQJYproduct = async (type:number = 1) => {
+  const res = await $api.getQQJYproduct(type);
+  if(res && res['code'] == 200){
+    Store.data.productList = res.data;
+  }
+}
+
+// 跳转期权详情
+const handleSelecthq = (_ev:any) => {
+  const { dataset } = _ev.target
+  console.log(dataset);
+  
+  if(dataset['mjname']){
+    router.push({
+      path:'/options',
+      query:{
+        mjname:dataset['mjname'],
+      },
+    })
+  }
 }
 
 let requestArr = [
@@ -71,12 +88,13 @@ let requestArr = [
   $api.getBulletin(0),
   $api.getCooperate(1,20),
   $api.getUsermoneylist(),
-  $api.getQQJYproduct(Store.data.product)
 ]
 onMounted(()=>{
   Store.data.swiperWidth = document.documentElement.clientWidth*0.65;
   window.addEventListener('resize', () => { Store.data.swiperWidth = document.documentElement.clientWidth*0.65;})
-  Store.data.mediaBody = Store.data.mediaData[0].txt;  
+  Store.data.mediaBody = Store.data.mediaData[0].txt;
+  getQQJYproduct(1)
+
   Promise.all(requestArr)
   .then((res:any[])=>{
     if(res.includes(undefined)) return
@@ -84,12 +102,12 @@ onMounted(()=>{
     Store.data.bulletin = res[1].rows;
     Store.data.cooperate = res[2].rows;
     Store.data.czmoneylist = res[3].rows;
-    Store.data.productList = res[4].data;
     Store.data.loading = true;
   })
   .catch((err)=>{
     console.log(err);
   })
+
 })
 
 </script>
@@ -114,7 +132,7 @@ onMounted(()=>{
               <van-swipe :autoplay="5000"  
               :width="Store.data.swiperWidth" :show-indicators="false" loop>
                 <van-swipe-item v-for="item in Store.data.banner" :key="item['id']">
-                  <img :src="item['img']" />
+                  <img @click="$router.push({path:item.timgurl})" :src="item['img']" :alt="`bannerImg${item.id}`"/>
                 </van-swipe-item>
               </van-swipe>
             </div>
@@ -176,28 +194,19 @@ onMounted(()=>{
             </div>
         </section>
 
+        <!-- buy start -->
+        <Cus-Card :useBottom="true" padding="10">
+          <div class="bitMing-box">
+            <div class="bitMing-left">
+              <img class="bitIcon" src="../assets/logos/bitIcon.png" alt="bitIcon">
+              <p class="bitinfo">USDT{{ $t('silder.menu3_1') }}</p>
+            </div>
+            <div class="bitMing-right bitbtn" @click="$router.push('/mining')"><span>{{ $t('home.home01') }}</span></div>
+          </div>
+        </Cus-Card>
+
         <!-- hotcoin-tab start -->
         <section class="hotcoin-wrap">
-
-          <div class="hotcoin-child">
-            <van-tabs v-model:active="Store.data.hotcoinactive" @click-tab="onClickTab" shrink>
-              <van-tab>
-                <template #title>
-                   <span class="hotcoin-child-title">USDT</span>
-                </template>
-              </van-tab>
-              <van-tab>
-                <template #title>
-                   <span class="hotcoin-child-title">Web3</span>
-                </template>
-              </van-tab>
-              <van-tab>
-                <template #title>
-                   <span class="hotcoin-child-title">NFT</span>
-                </template>
-              </van-tab>
-            </van-tabs>
-          </div>
           <div class="hotCurrency-wrap">
             <div class="hotCurrency-list">
               <div class="hotCurrency-head flex">
@@ -206,8 +215,8 @@ onMounted(()=>{
                 <p class="hot-righttxt">{{$t('home.hotCurrency_right')}}</p>
               </div>
               <van-divider />
-              <div class="hotCurrency-item flex" v-for="(item,index) in Store.data.productList" :key="index">
-                <div class="hotCurrency-mask" :class="{'front':item.riseRate > 0}"></div>
+              <div class="hotCurrency-item flex" v-for="(item,index) in Store.data.productList" :key="index" @click="(event)=>handleSelecthq(event)">
+                <div class="hotCurrency-mask" :class="{'front':item.riseRate > 0}" :data-MJname="item.MJname"></div>
                 <div class="hotCurrency-name">
                   <img class="hotCurrency-img" :src="item.Ioc"/>
                   <span class="hotCurrency-tit">{{item.name}}</span>
@@ -291,13 +300,13 @@ onMounted(()=>{
           <div class="layout">
             <h2 class="sectionTitleCen">{{ $t('home.platformInfo') }}</h2>
             <van-divider />
-        <div class="platformInfo-list">
-          <div class="platformInfo-item" v-for="item in Store.data.cooperate" :key="item.id">
-            <div class="platformInfo-img">
-              <img class="platformInfo-logo" :src="item.img" />
+            <div class="platformInfo-list">
+              <div class="platformInfo-item" v-for="item in Store.data.cooperate" :key="item.id">
+                <div class="platformInfo-img">
+                  <img class="platformInfo-logo" :src="item.img" />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
           </div>
         </section>
 
@@ -307,9 +316,10 @@ onMounted(()=>{
 
 <style scoped lang="less">
 @wrapPadd: 0 15px;
+@gapVal: 15px;
 @transparent:transparent;
 // 弹性盒子
-.flex-dom(@justify){
+.MixinFlex(@justify){
     display: -webkit-box;
     display: -webkit-flex;
     display: flex;
@@ -336,7 +346,7 @@ onMounted(()=>{
   margin: 10px 0;
   .deposit-box{
     .head{
-      .flex-dom(flex-start);
+      .MixinFlex(flex-start);
       margin-bottom: 5px;
       .title{
         font-style: normal;
@@ -358,7 +368,7 @@ onMounted(()=>{
     .content{
       height: 38px;
       line-height: 38px;
-      .flex-dom(space-between);
+      .MixinFlex(space-between);
       .content-left{
         flex-basis: 65%;
         position: relative;
@@ -383,7 +393,7 @@ onMounted(()=>{
       }
       .content-item{
         position: relative;
-        .flex-dom(flex-start);
+        .MixinFlex(flex-start);
         border-radius: 8px;
         background-color: #fff;
         padding: 0 8px;
@@ -520,6 +530,7 @@ onMounted(()=>{
 // news
 .news-wrap{
   padding: @wrapPadd;
+  margin-bottom: @gapVal;
   .news-box{
     border-radius: 10px;
     overflow: hidden;
@@ -571,13 +582,14 @@ onMounted(()=>{
   background: #fff;
   border-radius: 13px;
   .hotCurrency-list{
-    padding: 8px;
+    padding: @gapVal;
     .flex{
-      .flex-dom(space-between);
+      .MixinFlex(space-between);
     }
     .hotCurrency-head{
       font-size: 16px;
       color: rgba(0,0,0,.6);
+      white-space: nowrap;
       .hot-centertxt{text-align: center;}
       p{
         flex-basis: 33.333%;
@@ -611,7 +623,7 @@ onMounted(()=>{
         background: linear-gradient(90deg,rgba(36,170,113,0),rgba(36,170,113,.2) 50%,rgba(48,229,152,.3) 80%,rgba(36,170,113,.8));
       }
       .hotCurrency-name{
-        .flex-dom(flex-start);
+        .MixinFlex(flex-start);
         .hotCurrency-img{
           height: 33px;
           width: 33px;
@@ -619,16 +631,18 @@ onMounted(()=>{
         }
       }
       .hotCurrency-price{
-        flex-basis: 40%;
+        flex-basis: 33%;
         text-align: center;
         .multiEllipsis(1);
       }
       .hotCurrency-arc{
         background: red;
-        padding: 5px 10px;
-        border-radius: 5px;
+        border-radius: 4px;
         color: #fff;
-        font-size: 15px;
+        width: 70px;
+        height: 27px;
+        line-height: 27px;
+        text-align: center;
       }
       .hotCurrency-arc.front{
         background: #00C693;
@@ -666,11 +680,11 @@ onMounted(()=>{
 .products-list{
       padding: 8px;
       gap: 10px;
-      .flex-dom(space-between);
+      .MixinFlex(space-between);
       flex-wrap: wrap;
       align-items: stretch;
       .products-item{
-        .flex-dom(center);
+        .MixinFlex(center);
         flex-basis: 31%;
         -webkit-box-orient: vertical;
         -webkit-box-direction: normal;
@@ -705,7 +719,7 @@ onMounted(()=>{
     .choose-list{
       align-items: center;
       .choose-item{
-        .flex-dom(flex-start);
+        .MixinFlex(flex-start);
         padding-top: 15px;
         .choose-img{
           height: 50px;
@@ -755,7 +769,7 @@ onMounted(()=>{
       border-radius: 10px;
       padding: 20px;
       .cus-swiper-item{
-        .flex-dom(center);
+        .MixinFlex(center);
         flex-direction: column;
         .user-avatar{
           width: 87px;
@@ -808,7 +822,7 @@ onMounted(()=>{
 
 // platformInfo
 .platformInfo-list{
-  .flex-dom(space-evenly);
+  .MixinFlex(space-evenly);
   flex-wrap: wrap;
   padding: 10px 0 0;
   .platformInfo-item{
@@ -822,6 +836,30 @@ onMounted(()=>{
         height: 100%;
       }
     }
+  }
+}
+
+// bitMing-box
+.bitMing-box{
+  .MixinFlex(space-between);
+  .bitMing-left{
+    .MixinFlex(flex-start);
+    .bitIcon{
+      width: 56px;
+      height: 36px;
+      margin-right: 8px;
+    }
+  }
+  .bitMing-right{
+    background: #3350de;
+    border-radius: 5px;
+    height: 30px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #fff;
+    text-align: center;
+    line-height: 30px;
+    padding: 0 10px;
   }
 }
 

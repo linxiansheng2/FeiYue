@@ -20,5 +20,9 @@ export default{
         return instance.post('api/client/login.php/login',{
             address,ycode
         })
+    },
+    //logo
+    getlogoa(){
+        return instance.get('api/public/config.php/findConfigList')
     }
 }

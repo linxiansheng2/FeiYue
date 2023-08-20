@@ -48,15 +48,15 @@ onMounted(()=>{
  <div class="layout" v-if="loading">
     <div class="main">
         <div><img class="main_img" :src=Store.data.data.img alt=""></div>
-      <div class="main-tit">
-        <h1 class="title">{{ Store.data.data.title }}</h1>
-       <div>
+      <!-- <div class="main-tit"> -->
+        <!-- <h1 class="title">{{ Store.data.data.title }}</h1> -->
+       <!-- <div>
         <span class="time">{{ Store.data.data.create_time }}</span>——
         <span class="time">{{ Store.data.data.update_time }}</span>
-       </div>
-      </div>
+       </div> -->
+      <!-- </div> -->
       <div class="main-info">
-        <div class="rich_cxk" v-html="Store.data.data.body"></div>
+        <div class="rich_cxk" v-html="Store.data.data.Body"></div>
       </div>
     </div>
   </div>

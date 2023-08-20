@@ -1,3 +1,4 @@
+// 法语
 export default {
     silder:{
       menu1:'Accueil',
@@ -16,7 +17,8 @@ export default {
       menu8_1:'Annonces de la plateforme',
       menu8_2:'Livre blanc',
       menu8_3:'Conditions de service',
-      clearcache:'Effacer le cache'
+      clearcache:'Effacer le cache',
+      score:'Cote de crédit'
     },
     menu:{
       navAsset:'Centre des avoirs',
@@ -65,6 +67,7 @@ export default {
         cztitle:'Recharge rapide',
         czsubtitle:'Rapide et sécurisé',
         cz:'Déposer',
+        home01:'Commencer à trader'
     },
     assetcenter_index:{
       assetcenter1:'Compte total des avoirs',
@@ -266,7 +269,7 @@ export default {
       options_options24:'Direction',
       options_options25:'Prix',
       options_options26:'Quantité',
-      options_options27:`Passer l{'''}Ordre`,
+      options_options27:`Passer l'Ordre`,
       options_options28:'Plus Haut',
       options_options29:'Plus Bas',
       options_options30:'Ouverture',
@@ -331,8 +334,11 @@ export default {
       share_index29:'Enregistrer dans les photos',
       share_index30:'Confirmer',
       share_index31:'Copie réussie',
-      share_index32:"Échec de la copie"
-      
+      share_index32:"Échec de la copie",
+      share_index33:'Graphique de distribution dividendes',
+    share_index34:`Profitezdividende jusqu'à 5 %`,
+    share_index35:'Graphique de distribution dividendes',
+    share_index36:`Profitez des récompenses d'équipe`
     },
     guidance_index:{
       guidance_index1:'Historique des invitations',
@@ -381,6 +387,40 @@ export default {
         pledgerecord_index_navArray2:'Terminé'
       }
   
+    },
+    about_index:{
+      aboutIndex1: 'Rapidité, sécurité, échange facile de plus de 600 cryptomonnaies',
+      aboutIndex2: "Plateforme de trading d'actifs numériques leader mondial",
+      aboutIndex3: 'Plateforme de trading internationale',
+      aboutIndex4: `La seule plateforme de trading tokenisée et quantifiée entièrement réglementée, offrant une vitesse, une flexibilité et une gamme d'actifs requises par les investisseurs. Un système d'appariement puissant garantissant que toutes les opérations essentielles des utilisateurs sont effectuées en moins de 100 millisecondes. Fonctionnalités de trading uniques comme les ordres K-line, superpositions et positions multiples, liquidations à double prix, retournement en un clic, etc., pour aider les traders à prendre des décisions éclairées.`,
+      aboutIndex32: 'Frais de trading aussi bas que ',
+      aboutIndex5: 'Paires de trading',
+      aboutIndex6: 'Régions globales',
+      aboutIndex7: 'Support client',
+      aboutIndex8: 'À propos de nous',
+      aboutIndex9: `Notre objectif ultime est de fournir des services financiers cryptographiques via l'algorithme de trading quantitatif à haute fréquence Chat GPT, créant ainsi une plateforme de trading décentralisée, basée sur une communauté et transparente. Notre outil principal est le jeton natif WEB3.0 basé sur la plateforme WEB3.0.`,
+      aboutIndex10: `Chat GPT : Le DAI existant sera converti en notre jeton natif dans un ratio de 1:1. Nous offrons une solution complète et unique pour le trading intelligent à haute fréquence des cryptomonnaies et des innovations financières, combinant l'économie des tokens pour apporter plus de dynamisme et de participation aux affaires et aux finances mondiales.`,
+      aboutIndex11: "Plateforme de trading d'actifs numériques leader mondial",
+      aboutIndex12: `Nous bénéficions du soutien d'une équipe d'ingénieurs en programmation exceptionnels qui maîtrisent les disciplines académiques telles que les mathématiques, la programmation informatique, le droit, l'économie, la technologie Chat GPT, etc., avec une excellente capacité technique en termes d'architecture et d'optimisation itérative de la plateforme, y compris le développement de systèmes et d'outils pour l'acquisition de données de marché, l'analyse des tendances, la simulation de transactions, la saisie et la gestion des commandes, le support de transactions en temps réel, la gestion des risques et les services post-transaction. Ainsi, notre plateforme peut déployer diverses stratégies automatisées et quantitatives dans un large éventail de catégories d'actifs.`,
+      aboutIndex13: `Le cœur de cette plateforme est l'application de la technologie de trading automatisé qui utilise le modèle AMM de pointe pour une correspondance automatique des transactions. Nous développons également nos capacités de trading quantitatif en exploitant pleinement la technologie Big Data et l'IA de Chat GPT pour optimiser nos modèles, offrant ainsi à nos utilisateurs des opportunités de rendement supérieur à la moyenne du marché.`,
+      aboutIndex14: "Pourquoi choisir",
+      aboutIndex15: 'Politique de confidentialité',
+      aboutIndex16: `Sécurité ultime grâce à la création d'adresses illimitées, l'authentification à deux facteurs (2FA) et une protection multicouche`,
+      aboutIndex17: 'Sécurité des fonds',
+      aboutIndex18: `Les cryptomonnaies offrent une anonymat complet, personne d'autre que vous ne peut accéder à vos informations`,
+      aboutIndex19: 'Conformité légale',
+      aboutIndex20: `Fier de posséder une licence MSB délivrée par le Centre d'analyse et de rapports financiers pour effectuer légalement des transactions financières et des analyses`,
+      aboutIndex21: 'Service client',
+      aboutIndex22: 'Service client en ligne 24 heures sur 24, fournissant des conseils et résolvant rapidement les problèmes des utilisateurs',
+      aboutIndex23: 'Blog',
+      aboutIndex24: "Mises à jour et analyses des liens de la blockchain et des cryptomonnaies du point de vue de DAI-TEST",
+      aboutIndex25: `Trading facile, n'importe quand, n'importe où`,
+      aboutIndex26: 'Compatible avec de multiples terminaux pour répondre aux besoins de trading dans toutes les situations',
+      aboutIndex27: 'Consultez les cotes en temps réel à tout moment',
+      aboutIndex28: `Achetez vendez facilement du BTC, de l'ETH, du XRP, de l'OKB et d'autres actifs numériques`,
+      aboutIndex29: 'Recevez des alertes sur les variations de prix des cryptomonnaies qui vous intéressent',
+      aboutIndex30: 'Consultez les prix en spot, à terme et des options du BTC',
+      aboutIndex31: `Comparez les prix des cryptomonnaies entre différentes plateformes d'échange`,
     },
     undefined:{
       undefined:'Page non trouvée'

@@ -14,23 +14,19 @@ const Store:any = reactive({data:{
   id:'',
   data:''
 }})
-// const createtime=ref<any>(0)
-// const updatetime=ref<any>(0)
-// const daoitime=ref<any>(0)
+const createtime=ref<any>(0)
+const timeend=ref<any>(0)
+  const nowdate=ref<any>(0)
 const getbulletin = async (id:number) => {
   const res = await $api.getbulletin(id);
-  console.log(res,'swbres');
- 
-
   if(res && res.code == 200){
     Store.data.data = res.data1;
-    // createtime.value=dayjs(Store.data.data.create_time).unix();
-    // updatetime.value=dayjs(Store.data.data.update_time).unix(); 
-    // console.log(createtime.value,updatetime.value,'caixukun');
-    // time.value =updatetime.value-createtime.value
-    time.value=dayjs(Store.data.data.update_time).unix()-dayjs(Store.data.data.create_time).unix()
+    createtime.value=dayjs(Store.data.data.create_time).unix();
+    timeend.value=dayjs(Store.data.data.time_end).unix()*1000; //结束时间
+    nowdate.value=dayjs().valueOf() //当前时间
+    time.value= timeend.value-nowdate.value//结束时间减去当前时间
     // console.log(time.value,'zong');
-    
+    // console.log(nowdate.value,'当前',timeend.value);
     loading.value = true;
   }
 }
@@ -52,7 +48,7 @@ onMounted(()=>{
         <h1 class="title">{{ Store.data.data.title }}</h1>
        <div>
         <span class="time">{{ Store.data.data.create_time }}</span>——
-        <span class="time">{{ Store.data.data.update_time }}</span>
+        <span class="time">{{ Store.data.data.time_end }}</span>
        </div>
       </div>
       <div class="main-info">
@@ -60,7 +56,10 @@ onMounted(()=>{
       </div>
     </div>
   </div>
-  <div class="timercxcka">
+  <div v-if="nowdate>timeend" class="timercxcka">
+      <div class="timer">已结束</div>
+  </div>
+  <div class="timercxcka" v-else>
     <div class="timer">
     <span>{{$t('officialActivity_detaile.officialActivity_detaile1')}}：</span>
     <van-count-down :time="time" :format="`DD ${$t('officialActivity_detaile.officialActivity_detaile2')} HH ${$t('officialActivity_detaile.officialActivity_detaile3')}mm${$t('officialActivity_detaile.officialActivity_detaile4')}ss${$t('officialActivity_detaile.officialActivity_detaile5')}`" />

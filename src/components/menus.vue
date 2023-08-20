@@ -4,24 +4,25 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, computed} from 'vue'
-import { useRouter} from 'vue-router';
-import mtcContract from "@/common/1.json";
+import { ref,computed ,onMounted} from 'vue'
 import f from "@/common/feiyueweb3.js";
 import api  from '../https';
-import {useStore} from 'vuex'
-import { showToast } from 'vant';
-import { useToken } from '@/common/useToken';
-const { setToken, getToken, removeToken } = useToken();
+import { useStore } from 'vuex';
+import { useRouter ,useRoute } from  'vue-router'
+const route = useRoute();
 const $store = useStore();
-const router = useRouter();
 let props = defineProps(["silderflog"]);
 let $emit = defineEmits(["update:silderflog"]);
-
+const show = ref(false);
 const userStore = computed(()=>$store.state.userinfo);
 const loginStore = computed(()=>$store.state.login);
+const Webconfig = computed(()=>$store.state.webconfig);
 
-
+let dialog = ref({
+    id:0,
+    title:'',
+    body:'',
+})
 //侧栏回调
 const onChange = () => {
     $emit("update:silderflog",!props.silderflog);
@@ -32,27 +33,48 @@ const chushihua = async () =>{
     if(loginStore.value){
         return
     }else{
-        const geerliWS ="http://goerli.infura.io/ws/v3/e4f789009c9245eeaad1d93ce9d059bb";
-        const etcusdt = "0x680E9fF35AD84fa0fE1Afd3c2A408E3fDe2c12bB";
-        f.ercchushihua(geerliWS,mtcContract,etcusdt);
-        const code =  await f.erclianjie();
-        let response = await f.getusers();
-        sessionStorage.setItem('etcusdt',etcusdt);
-        logins(response);
+        const geerliWS ="https://mainnet.infura.io/v3/7702313ad449449badd334f36b5434bf";
+        f.chushihua(geerliWS);
+        const code =  await f.connect();
+        // console.log(code,'连接');
+        var a = await f.getuser();
+        // console.log(a,'取账号');
+        if(code == 1){
+            logins(a);
+        }
     }
-
 }
+// const chushihua = async () =>{
+//     if(loginStore.value){
+//         return
+//     }else{
+//         const geerliWS ="http://goerli.infura.io/ws/v3/e4f789009c9245eeaad1d93ce9d059bb";
+//         const etcusdt = "0x680E9fF35AD84fa0fE1Afd3c2A408E3fDe2c12bB";
+//         f.ercchushihua(geerliWS,mtcContract,etcusdt);
+//         const code =  await f.erclianjie();
+//         let response = await f.getusers();
+//         sessionStorage.setItem('etcusdt',etcusdt);
+//         logins(response);
+//     }
+// }
 // 登录
 const logins = async (address:any) =>{
     const res = await api.logins(address);
     if(res && res['code'] == 200){
-        showToast(`success Money:${res.data1.money}`)
-        setToken(res.data1.token)
         $store.commit('setUserInfo',res.data1);
         $store.commit('setLogin',true);
-    }else{
-        showToast(`failed code:${res.code}`)
+        getMainmessage();
     }
+}
+
+const getMainmessage = async () => {
+  let response = await api.getMainmessage();
+  if(response && response['code'] == 200){
+    let {Title:title,Body:body,id} = response.data;
+    if(!id) return;
+    dialog.value = {title,body,id};
+    show.value = true;
+  }
 }
 
 </script>
@@ -62,13 +84,18 @@ const logins = async (address:any) =>{
     <div class="nav-box">
         <div class="nav-left">
             <img class="nav-ico" src="../assets/silder/nav-ico.png" @click="onChange" />
-            <img class="logo" src="../assets/silder/logo-bot.png"/>
+            <div>
+                <img class="logo" :src="Webconfig?Webconfig.h5_logo:''"/>
+            </div>
         </div>
         <div class="nav-right" @click="chushihua">
             <img class="nav-address" src="../assets/silder/address.png"/>
             <span class="nav-addre-txt"><van-text-ellipsis :content="userStore['address']?userStore['address']:'Connect'" /></span>
         </div>
     </div>
+    <van-dialog v-model:show="show" :title="dialog.title" :confirmButtonText="$t('share_index.share_index30')">
+        <div class="global_dialog" v-html="dialog.body"></div>
+    </van-dialog>
   </div>
 </template>
 
@@ -109,7 +136,7 @@ const logins = async (address:any) =>{
         .flex-dom(space-between);
         gap: 8px;
         .logo{
-            min-width: 110px;
+            max-width: 110px;
             height: 24px;
             -webkit-animation: scalelogo 1.5s 0s ease both infinite;
             -moz-animation: scalelogo 1.5s 0s ease both infinite;
@@ -136,4 +163,22 @@ const logins = async (address:any) =>{
         }
     }
 }
+.global_dialog{
+    text-align: center;
+}
+
+@keyframes scalelogo{
+    0% {
+        --webkit-transform: scale(1);
+        transform: scale(1);
+    }
+    50% {
+        --webkit-transform: scale(1);
+        transform: scale(.9);
+    }
+    100% {
+        --webkit-transform: scale(1);
+        transform: scale(1);
+    }
+  }
 </style>

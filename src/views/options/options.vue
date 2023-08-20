@@ -4,15 +4,16 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted ,onUnmounted ,getCurrentInstance ,toRef} from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import $api  from '@/https'
 import dayjs from "dayjs"
 import { showToast } from 'vant'
-import {useStore} from 'vuex'
-import router from '@/router'
+import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
-const { locale , t } = useI18n();
+import { useRoute } from  'vue-router'
+const route = useRoute();
+const { t } = useI18n();
 const $store = useStore();
 type EChartsOption = echarts.EChartsOption;
 const Store:any = reactive({data:{
@@ -22,7 +23,7 @@ const Store:any = reactive({data:{
   tabindex:0,           //Tab 索引
   timelist:['1Min','30Min','60Min','1Day','1Week','1Mon'],
   options_trading:{},   //期权交易玩法
-  proIndex:0,     //产品索引
+  proIndex:0,           //产品索引
   recommendList:[],     //列表产品
   comboInfo:'',         //下单选项文字
   comboActions:[],      //下单选项属性
@@ -42,6 +43,8 @@ const formData:any = reactive({data:{
   Bid:1,
   ZD:0
 }})
+// 订单信息
+const Ordershow = ref<boolean>(false);
 
 // 买卖数据
 const TotalTrades = reactive<any>({data:[]});
@@ -52,7 +55,7 @@ const showRangeCard = ref(false);
 const onChangeTime = (_ev:any) => {
   const index = _ev.target.dataset['index'];
   Store.data.tabindex = Number(index);
-  splitData(Store.data.recommendList[Store.data.proIndex]['MJname'],Store.data.timelist[Number(index)]);
+  splitData(Store.data.timelist[Number(index)]);
   settitle.value = false;
 }
 
@@ -65,9 +68,6 @@ const MA10 = ref<any>('');
 const MA20 = ref<any>('');
 const volMA5 = ref<any>('');
 const volMA10 = ref<any>('');
-const rawData = ref<any[]>([]);
-const dates = ref<any>([]);
-const echartsData = ref<any>([]);
 const volumes = ref<any>([]);
 const QQQuotes = ref<any>('');
 const settitle = ref<boolean>(false);
@@ -84,26 +84,179 @@ const resetData = () => {
 }
 /**
  * 
- * @param list 后端K线数据
+ * @param list K线数据
  */
-const splitData = async (symbol:string = 'eth_usdt',period:string = '1min') => {
-  const res = await $api.getQQJYKX(symbol,period);
+const splitData = async (period:string = '1min',useReset:boolean = true) => {
+  const res = await $api.getQQJYKX(MJname.value,period);
   if(res && res['code'] == 200){
     res['list'].reverse();
     let setlist = res['list'].map((item:any)=>Object.values(item).map(Number));
-    rawData.value = setlist;
+    if(!setlist.length) return;
     QQQuotes.value = res.quotes;
-
     // 格式化Echarts
-    dates.value = setlist.map((item:any) => {
-      return dayjs.unix(item[5]).format('HH:mm');
-    });
-    echartsData.value = setlist.map((item:any) =>[+item[0], +item[1], +item[2], +item[3], +item[4]]);
-    volumes.value = setlist.map((item:any, index:number) =>[index, item[4], item[0] > item[1] ? 1 : -1]);
-    resetData();
-    myChart.showLoading();
-    draw();
+    let dates2 = setlist.map((item:any) =>dayjs.unix(item[5]).format('HH:mm'));
+    let echartsData2 = setlist.map((item:any) =>[+item[0], +item[1], +item[2], +item[3], +item[4]]);
+    let volumes2 = setlist.map((item:any, index:number) =>[index, item[4], item[0] > item[1] ? 1 : -1]);
+    if(useReset){
+      draw();
+      resetData();
+      setSeries(setlist,echartsData2,volumes2,dates2);
+    }else{
+      setSeries(setlist,echartsData2,volumes2,dates2);
+    }
   }
+}
+const start = ref<number>(70);
+const end = ref<number>(100)
+const setSeries = (newLlist:any,newData:any,newVolumes:any,newDate:any) => {
+console.log('new time',newDate[99]);
+if(option){
+  option.xAxis = [{
+      type: 'category', 
+      data: newDate, 
+      boundaryGap: false, 
+      axisLine: {
+        show: false
+      }, //坐标轴轴线相关设置
+      axisTick: {
+        show: false
+      }, //坐标轴刻度相关设置。
+      axisLabel: {
+        show: false,
+      }, //坐标轴刻度标签的相关设置。
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: 'rgba(255,255,255, 0.1)'
+        }
+      }, //坐标轴在 grid 区域中的分隔线。
+      min: 'dataMin', 
+      max: 'dataMax', 
+      axisPointer: {
+        label: {
+          margin: 200
+        }
+      },
+    }, {
+      type: 'category',
+      gridIndex: 1,
+      data: newDate,
+      boundaryGap: false, 
+      axisLine: {
+        show: false,
+      }, 
+      axisTick: {
+        show: false
+      }, 
+      axisLabel: { 
+        show: true,
+        fontSize: 10,
+        color: 'rgba(99, 117, 139, 1.0)',
+      },
+      splitLine: {
+        show: false,
+      }, 
+      min: 'dataMin', 
+      max: 'dataMax', 
+    }]
+  option.series = [
+      {
+        type: 'candlestick',
+        name: '日K',
+        data: newLlist.reverse(),
+        markLine: {
+        data:[{
+              name: 'value',
+              yAxis: newLlist.length ? newLlist[99][0] : 0
+          }],
+      },
+        itemStyle: {
+          color: upColor,
+          color0: downColor,
+          borderColor: undefined,
+          borderColor0: undefined,
+        },
+      }, 
+      {
+        name: 'MA5',
+        type: 'line',
+        data: calculateMA(5, newData),
+        symbol: 'none',//去除圆点
+        smooth: true,
+        lineStyle: {width: 1},
+        z: 5,
+      }, 
+      {
+        name: 'MA10',
+        type: 'line',
+        data: calculateMA(10, newData),
+        symbol: 'none',//去除圆点
+        smooth: true,
+        lineStyle: {width: 1},
+        z: 4
+      },
+      {
+        name: 'MA20',
+        type: 'line',
+        data: calculateMA(20, newData),
+        symbol: 'none',//去除圆点
+        smooth: true,
+        lineStyle: {width: 1},
+        z: 3
+      },
+      {
+          name: 'Volume',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: newVolumes.reverse(),
+          barWidth:'50%'
+        },
+        {
+          name: 'VolumeMA5',
+          type: 'line',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: calculateMA(5, newVolumes),
+          symbol: 'none',//去除圆点
+          smooth: true,
+          lineStyle: {width: 1},
+          z: 5,
+        },
+        {
+          name: 'VolumeMA10',
+          type: 'line',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: calculateMA(10, newVolumes),
+          symbol: 'none',//去除圆点
+          smooth: true,
+          lineStyle: {width: 1},
+          z: 4,
+        },
+  ]
+  
+  option.dataZoom = [{ 
+      type: 'inside',
+      xAxisIndex: [0, 1],
+      start:start.value,
+      end:end.value
+  }]
+  myChart.on('dataZoom',(event:any)=>{
+    if(event.batch){
+      start.value = event.batch[0].start;
+      end.value = event.batch[0].end;
+    }else{
+      start.value = event.start;
+      end.value = event.end
+    }
+  })
+  myChart.setOption(option);
+  setTimeout(() => {
+    myChart.hideLoading();
+  }, 1500);
+}
+
 }
 
 // 截取数字字符串 保留precision小数
@@ -132,9 +285,6 @@ const calculateMA = (dayCount:number, data:any[]) => {
 var styleline = 'display: flex;flex-direction: row;align-items: center;justify-content: space-between;gap:20px'
 // 绘制(配置项)
 const draw = () =>{
-  // if(!myChart){
-    
-  // }
   option = {
     backgroundColor: '#fff',
     title: [
@@ -169,57 +319,7 @@ const draw = () =>{
     axisPointer: { //坐标轴指示器配置项
       link: [{xAxisIndex: [0,1]}],
     },
-    xAxis: [{
-      type: 'category', 
-      data: dates.value, 
-      boundaryGap: false, 
-      axisLine: {
-        show: false
-      }, //坐标轴轴线相关设置
-      axisTick: {
-        show: false
-      }, //坐标轴刻度相关设置。
-      axisLabel: {
-        show: false,
-      }, //坐标轴刻度标签的相关设置。
-      splitLine: {
-        show: true,
-        lineStyle: {
-          color: 'rgba(255,255,255, 0.1)'
-        }
-      }, //坐标轴在 grid 区域中的分隔线。
-      min: 'dataMin', 
-      max: 'dataMax', 
-      axisPointer: {
-        label: {
-          margin: 200
-        }
-      },
-    }, {
-      type: 'category',
-      gridIndex: 1, //x 轴所在的 grid 的索引，默认位于第一个 grid。
-      data: dates.value, //类目数据，在类目轴（type: 'category'）中有效。
-      // scale: true,
-      boundaryGap: false, //坐标轴两边留白策略，类目轴和非类目轴的设置和表现不一样。
-      axisLine: {
-        show: false,
-      }, //坐标轴轴线相关设置
-      axisTick: {
-        show: false
-      }, //坐标轴刻度相关设置。
-      axisLabel: { //坐标轴刻度标签的相关设置。
-        show: true,
-        // margin: 6,
-        fontSize: 10,
-        color: 'rgba(99, 117, 139, 1.0)',
-      },
-      // splitNumber: 20,
-      splitLine: {
-        show: false,
-      }, //坐标轴在 grid 区域中的分隔线。
-      min: 'dataMin', //坐标轴刻度最小值。可以设置成特殊值 'dataMin'，此时取数据在该轴上的最小值作为最小刻度。
-      max: 'dataMax', //坐标轴刻度最大值。可以设置成特殊值 'dataMax'，此时取数据在该轴上的最大值作为最大刻度。
-    }],
+    xAxis: [],
     yAxis: [{
       type: 'value', //坐标轴类型。(value:数值轴，适用于连续数据。,category:类目轴，适用于离散的类目数据,time: 时间轴，适用于连续的时序数据,log:对数轴。适用于对数数据)
       position: 'right', //y 轴的位置。'left','right'
@@ -280,7 +380,6 @@ const draw = () =>{
             low = params[i].data.length > 1 ? Number(formatterNum(params[i].data[3], 2)) : 0;
             high = params[i].data.length > 1 ? Number(formatterNum(params[i].data[4], 2)) : 0;
             amount = params[i].data.length > 1 ? Number(formatterNum(params[i].data[5], 2)) : 0;
-            // console.log(time,open,close,low,high,amount)
             tooltip = '<div class="charts-tooltip" style="width:auto;">' +
               `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options23') + '</div><div class="ctr-value">' + time + '</div></div>' + 
               `<div class="charts-tooltip-row" style="${styleline}"><div class="ctr-label">` + t('options_options.options_options30') + '</div><div class="ctr-value">' + open + '</div></div>' + 
@@ -361,129 +460,53 @@ const draw = () =>{
         }
       },
     },
-    dataZoom: [{ //用于区域缩放
-      type: 'inside',
-      xAxisIndex: [0, 1],
-      start: 70,
-      end: 100,
-    }
-    ],
-    series: [
-      {
-        type: 'candlestick',
-        name: '日K',
-        data: rawData.value.reverse(),
-        markLine: {
-        data:[{
-              name: 'value',
-              yAxis: 1800
-          }],
-      },
-        itemStyle: {
-          color: upColor,
-          color0: downColor,
-          borderColor: undefined,
-          borderColor0: undefined,
-        },
-      }, 
-      {
-        name: 'MA5',
-        type: 'line',
-        data: calculateMA(5, echartsData.value),
-        symbol: 'none',//去除圆点
-        smooth: true,
-        lineStyle: {width: 1},
-        z: 5,
-      }, 
-      {
-        name: 'MA10',
-        type: 'line',
-        data: calculateMA(10, echartsData.value),
-        symbol: 'none',//去除圆点
-        smooth: true,
-        lineStyle: {width: 1},
-        z: 4
-      },
-      {
-        name: 'MA20',
-        type: 'line',
-        data: calculateMA(20, echartsData.value),
-        symbol: 'none',//去除圆点
-        smooth: true,
-        lineStyle: {width: 1},
-        z: 3
-      },
-      {
-          name: 'Volume',
-          type: 'bar',
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data:volumes.value.reverse(),
-          barWidth:'50%'
-        },
-        {
-          name: 'VolumeMA5',
-          type: 'line',
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: calculateMA(5, volumes.value),
-          symbol: 'none',//去除圆点
-          smooth: true,
-          lineStyle: {width: 1},
-          z: 5,
-        },
-        {
-          name: 'VolumeMA10',
-          type: 'line',
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: calculateMA(10, volumes.value),
-          symbol: 'none',//去除圆点
-          smooth: true,
-          lineStyle: {width: 1},
-          z: 4,
-        },
-    ]
+    dataZoom:[],
+    series: []
   };
-  option && myChart.setOption(option);
   settitle.value = true;
-  myChart.hideLoading();
-  window.addEventListener('resize', () => { myChart.resize()})
+  myChart.showLoading();
 }
 
 // 期权登录验证
 const handleLogin = async () => {
   const res = await $api.getQQJYlogin();
-  if(res && res['code'] == 5001){
-    showToast(res['msg']);
-    setTimeout(()=>{
-      router.push('/');
-    },1500)
-  }
 }
 
 // 遮罩层
 const handlemouseClick = (event:MouseEvent) => {
-      let setX = document.documentElement.clientWidth*0.8;
-      if(event.pageX > setX){
-          Store.data.sildershow = false
-      }
+  let setX = document.documentElement.clientWidth*0.8;
+  if(event.pageX > setX){
+      Store.data.sildershow = false
+  }
 }
 
+const MJname = ref<any>('');
+const ZSname = ref<any>('');
 // 获取产品列表
 const getList = async () => {
   const res = await $api.getQQJYproduct('');
   if(res && res['code'] == 200){
     Store.data.recommendList = res.data;
-    formData.data.Bid = res.data[0].id;
+    if(!res.data.length){return}
+    if(!MJname.value){
+      MJname.value = res.data[0].MJname;
+      ZSname.value = res.data[0].ZSname;
+      formData.data.Bid = res.data[0].id;
+    }else{
+      let index = res.data.findIndex((item:any)=>item.MJname == MJname.value);
+      formData.data.Bid = res.data[index].id;
+      ZSname.value = res.data[index].ZSname
+    }
+    splitData();
+    getTotalTrades();
   }
 }
 
-var widthArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+const widthArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 // 获取买卖数据
-const getTotalTrades = async (symbol:string = 'eth_usdt') => {
+const getTotalTrades = async () => {
   let widthRandom:any = [];
-  const res = await $api.getTotalTrades(symbol);
+  const res = await $api.getTotalTrades(MJname.value);
   if(res && res['code'] == 200){
     widthArr.forEach(item=>{
       widthRandom.push(Math.floor(Math.random()*(item - item*5 ) + item*7))
@@ -507,8 +530,10 @@ const onChangeList = (_ev:any) => {
   formData.data.amount = '';
   Store.data.tabindex = 0;
   Store.data.comboIndex = 0;
-  getTotalTrades(dataset['value']);
-  splitData(dataset['value']);
+  MJname.value = dataset['value'];
+  ZSname.value = dataset['name'];
+  splitData();
+  getTotalTrades();
   $store.commit('setUseLoading',true);
   settitle.value = false;
 }
@@ -564,15 +589,16 @@ const onFinish = () => {
   timeDown.value = 1000;
   Ordershow.value = false;
 };
-// 订单信息
-const Ordershow = ref<boolean>(false);
 
 onMounted(()=>{
+  let { mjname} = route.query
+  if(mjname){
+    MJname.value = mjname;
+  }
   myChart = echarts.init(document.getElementById('echartsBox'));
+  window.addEventListener('resize', () => { myChart.resize()})
   handleLogin();
   getList();
-  splitData();
-  getTotalTrades();
   Promise.all([
     $api.getSubmitOptions(),
     $api.getAuxiliary('options_trading_Xck')
@@ -586,14 +612,14 @@ onMounted(()=>{
     Store.data.comboInfo = res[0].data.length ? res[0].data[0].name : '';
     Store.data.placeholder = res[0].data.length ? res[0].data[0].maxmoney : '0'
     Store.data.options_trading = res[1].data1;
-
-    // 买卖数据轮询
+    // K线,买卖数据轮询
     time = setInterval(() => {
       setTimeout(async () => {
         $store.commit('setUseLoading',false);
-        getTotalTrades(Store.data.recommendList[Store.data.proIndex]['MJname']);
+        splitData(Store.data.timelist[Store.data.tabindex],false);
+        getTotalTrades();
       }, 100)
-    }, 6000)
+    }, 5000)
     
   })
   .catch((err)=>{
@@ -606,6 +632,7 @@ onUnmounted(()=>{
   clearInterval(time);
   $store.commit('setUseLoading',true);
 })
+
 </script>
 
 <template>
@@ -616,7 +643,7 @@ onUnmounted(()=>{
         <div class="candlesticks-topPrice">
           <div class="variety">
             <div class="variety-title" @click="Store.data.sildershow = !Store.data.sildershow">
-              {{Store.data.recommendList.length?Store.data.recommendList[Store.data.proIndex].ZSname:'USDT'}} 
+              {{ZSname}} 
               <van-icon name="arrow-down" />
             </div>
             <div class="variety-price" :class="{'red':Number(QQQuotes?QQQuotes.riseRate:-1)<0?true:false}">
@@ -651,7 +678,7 @@ onUnmounted(()=>{
     <section class="history-wrap">
         <div class="history-box">
           <div class="history-tit">{{ $t('options_options.options_options21') }}</div>
-          <div class="history-ico"><van-icon name="clock-o" /> {{ $t('options_options.options_options22') }}</div>
+          <div class="history-ico" @click="$router.push('/options/trade')"><van-icon name="clock-o" /> {{ $t('options_options.options_options22') }}</div>
         </div>
         <div class="history-title">
           <p>{{ $t('options_options.options_options23') }}</p><p>{{ $t('options_options.options_options24') }}</p><p>{{ $t('options_options.options_options25') }}</p><p>{{ $t('options_options.options_options26') }}</p>

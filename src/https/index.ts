@@ -11,7 +11,8 @@ import about from "./about"
 import officialactivity from "./officialactivity"
 // 登录验证
 const globalAxios = {
-	logins(address:any,ycode ? : number) {
+	logins(address:any) {
+		let ycode = localStorage.getItem('ycode');
 		return axios.post('api/client/login.php/login',{
 			address,
 			ycode

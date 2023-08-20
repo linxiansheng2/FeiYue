@@ -80,5 +80,9 @@ export default {
     //非质押挖矿授权
     getzysubmit(){
         return instance.post('api/clien/zySubmitOrder.php/FZY')
+    },
+    //质押挖矿轮播图
+    getlunbo(){
+        return instance.get('api/public/slideshow.php/zy')
     }
 }

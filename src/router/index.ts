@@ -10,10 +10,7 @@ import about from './modules/about'
 import guidance from './modules/guidance'
 import proclamation from './modules/proclamation'
 import pledgerecord from './modules/pledgerecord'
-import { useToken  } from '@/common/useToken'
 import { getMessage } from '@/lang'
-const { getToken, getLang } = useToken();
-
 const message:any = getMessage();
 /**
  * key : 多语言翻译字段，不添加显示标题为空
@@ -50,9 +47,41 @@ const routes: Array<RouteRecordRaw> = [
       component: () => import('../views/NotFound.vue'),
       meta: { 
           title: '页面不存在',
-          key:'undefined.undefined'
+          key:'undefined.undefined',
+          requiresAuth: true
       },
-  }
+  },
+  {
+    name: "invite",
+    path: "/:id",
+    component: () => import('../views/invite.vue'),
+    meta: { 
+        title: '推广',
+        key:'share_index.share_index9',
+        requiresAuth: true
+    },
+  },
+  {
+    name: "testpage",
+    path: "/test",
+    component: () => import('../views/test.vue'),
+    meta: { 
+        title: '测试链接',
+        key:'undefined.undefined',
+        requiresAuth: true
+    },
+  },
+  {
+    name: "cusservice",
+    path: "/service",
+    component: () => import('../views/service.vue'),
+    meta: { 
+        title: '客服',
+        key:'undefined.undefined',
+        requiresAuth: true,
+        link:'https://a1.feiyuechat.com/chat/index?noCanClose=1&token=be790a8ed6e1b7890cfe2afd8696294c'
+    },
+  },
 ]
 
 const router = createRouter({
@@ -68,30 +97,26 @@ const router = createRouter({
 	},
 })
 
-
 router.beforeEach((to, from, next) => {
-  const language = getLang();
-  // 判断用户是否已登录 或 已过期
-  const isLoggedIn = getToken(); 
-  if(isLoggedIn.value || to.meta['requiresAuth']){
-    next();
-  }else{
-    if(!isLoggedIn.flag && from.name != 'home'){
-      showToast(message[language].cusGlobal.state13);
-      setTimeout(() => {
-        if(from.path == "/home"){
-          next(false);
-        }
-        next({path:"/home"});
-      }, 500);
+  if(!to.meta['requiresAuth']){
+    const language = localStorage.getItem('language') || (navigator.language || 'en').toLocaleLowerCase().split('-')[0] || 'zh';
+    // 判断用户是否已登录 或 已过期
+    const isAuthenticated = JSON.parse(sessionStorage.getItem('vuex') as any);
+    if(isAuthenticated && isAuthenticated['login']){
+      next();
     }else{
-      if(to.name == '404'){
-        return next();
+      if(to.path != '/home'){
+        showToast(message[language].cusGlobal.state14);
+        next({path:"/home"});
+        return
       }
       showToast(message[language].cusGlobal.state14);
       next(false);
     }
-  }  
+  }else{
+    // 不需要登录直接访问
+    next();
+  }
 });
 
 router.afterEach(() => {

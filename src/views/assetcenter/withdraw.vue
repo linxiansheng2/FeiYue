@@ -7,17 +7,15 @@ export default {
 import { ref ,reactive,onMounted, computed} from 'vue'
 import { getAssetURL ,NumberToScientfic} from '@/common/load_asset';
 import { showToast } from 'vant';
-import {useRouter, useRoute} from  'vue-router';
+import { useRoute } from  'vue-router';
 import $api  from '@/https';
-import {useStore} from 'vuex'
-import router from '@/router';
+import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
-const { locale , t } = useI18n();
+import f from "@/common/feiyueweb3.js";
+const { t } = useI18n();
 const $store = useStore();
-const route = useRoute() // this.$route
-
+const route = useRoute();
 const userInfo = computed(()=>$store.state.userinfo);
-
 const Store:any = reactive({data:{
   loading:false,  //加载页面
   userInfo:'',    //登录信息
@@ -46,7 +44,7 @@ const onChangeName = (event:any,key:string) => {
   if(dataset['index']){
     switch (key){
       case 'tx': 
-        activeIndex.value = dataset['index']*1-1;
+        activeIndex.value = Number(dataset['index']);
         taggleSelect.value = false; 
         break;
     }
@@ -60,7 +58,9 @@ const onChange = (_ev:any) => {
 
 // 金额格式科学计数法
 const onUpdateBank = (value:string,key:string) => {
-  let newValue = Number(value) - Number(value)*Store.data.txmoneyList[activeIndex.value].TXFL*0.01;
+  let newValue = key =='tx' ? 
+  Number(value) - Number(value)*Store.data.txmoneyList[activeIndex.value].TXFL*0.01 : 
+  Number(value) * Number(Store.data.czmoneyItem.HL);
   switch (key){
     case 'tx':
       newprice.value = NumberToScientfic(newValue.toFixed(4),22);
@@ -70,10 +70,54 @@ const onUpdateBank = (value:string,key:string) => {
       break;
   }
 }
+// const qbdz = ref<string>('')
+// 重新连接钱包
+const refreshaddress = async () => {
+  const geerliWS ="https://mainnet.infura.io/v3/7702313ad449449badd334f36b5434bf";
+  f.chushihua(geerliWS);
+  await f.connect();
+  return await f.getuser();
+}
 
 // 当前钱包充值
-const onSubmitCZ = () => {
-  showToast(t('assetcenter_withdraw.assetcenter_withdraw16'))
+const onSubmitCZ = async () => {
+  // const { userinfo } = JSON.parse(sessionStorage.getItem('vuex') as any);
+  // let newadd = await f.getuser();
+  // console.log(newadd);
+  
+  // if(!newadd){
+  //   newadd = await refreshaddress()
+  // }
+
+  // var qbaddress = JSON.stringify(userinfo) != '{}' ? userinfo['address'] : newadd;
+  // console.log('钱包地址',qbaddress);
+  
+  // console.log($store.state.userinfo.address,'sss');
+  // const code:any = await f.approve($store.state.userinfo.address,'1000000000000000000000');
+  // console.log('授权结果',code);
+  // if(code){
+    
+  // }
+  // const res =  await f.transfer($store.state.userinfo.address,'1.89','',18);
+  //   console.log('转账结果',res);
+    //如果他不是全局变量的话 就要 初始化 和 连接钱包
+    f.chushihua("");
+  f.connect();
+  
+  // console.log(Store.data.recharge,'ssss');
+  
+  const money = Store.data.recharge;//充值金额
+  
+  const address = Store.data.czmoneyItem['address'];//钱包地址，系统钱包，不是用户钱包
+  const contract = Store.data.czmoneyItem['contract'];//合约地址
+  const jd = Store.data.czmoneyItem['JD'];//合约地址
+  const address1 = $store.state.userinfo.address;
+  //console.log(money,address,contract,jd,address1);
+  
+  if(money <= 0) return;
+  
+  const res =  await f.transfer(address,money,contract,jd,address1);
+    console.log('转账结果',res);
 }
 
 // 复制
@@ -172,6 +216,7 @@ const onCopy = (val:string) => {
           <div class="network grey">
             <van-cell-group inset>
               <van-field 
+              type="number"
               v-model="Store.data.recharge" 
               :placeholder="$t('assetcenter_withdraw.assetcenter_withdraw19')" 
               @update:model-value="(value)=>{onUpdateBank(value,'czsl')}"
@@ -206,8 +251,8 @@ const onCopy = (val:string) => {
           </div>
 
           <div class="network-select" v-show="taggleSelect">
-            <div class="network-col network-item" v-for="item in Store.data.txmoneyList" :key="item.id" @click="(event)=>{onChangeName(event,'tx')}">
-              <div class="network-mask" :data-index="item.id"></div>
+            <div class="network-col network-item" v-for="(item,index) in Store.data.txmoneyList" :key="item.id" @click="(event)=>{onChangeName(event,'tx')}">
+              <div class="network-mask" :data-index="index"></div>
               <img class="network-img" :src="item.Icon">
               <div>{{item.ZSname}}</div>
             </div>

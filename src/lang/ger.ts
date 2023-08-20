@@ -1,3 +1,4 @@
+  // 德语
 export default {
     silder:{
       menu1:'Startseite',
@@ -16,7 +17,8 @@ export default {
       menu8_1:'Plattformankündigungen',
       menu8_2:'Whitepaper',
       menu8_3:'Nutzungsbedingungen',
-      clearcache:'Cache löschen'
+      clearcache:'Cache löschen',
+      score:'Kreditscore'
     },
     menu:{
       navAsset:'Asset Center',
@@ -65,6 +67,7 @@ export default {
         cztitle:'Schnelle Einzahlung',
         czsubtitle:'Schnell und sicher',
         cz:'Einzahlen',
+        home01:'Handel Starten'
     },
     assetcenter_index:{
       assetcenter1:'Gesamtkontostand',
@@ -345,7 +348,10 @@ export default {
       share_index30:'Bestätigen',
       share_index31:'Erfolgreich kopiert',
       share_index32:'Kopieren fehlgeschlagen',
-      
+      share_index33:'Dividendenausschüttungsdiagramm',
+    share_index34:'Dividendenausschüttungsdiagramm',
+    share_index35:'Dividendenausschüttungsdiagramm',
+    share_index36:'Genießen Sie Teamprämien'
     },
     //Einladung von Freunden - Meine Einnahmen - Details
     guidance_index:{
@@ -395,6 +401,43 @@ export default {
       }
   
     },
+    about_index:{
+          about_index1:'Schnelle, sichere und einfache Handel mit über 600 Kryptowährungen',
+          about_index2:'Weltweit führende digitale Asset-Handelsplattform',
+          about_index3:'Internationalisierungsplattform',
+      about_index4:`Die einzige vollständig regulierte tokenisierte quantitative Handelsplattform mit Geschwindigkeit, Flexibilität und dem erforderlichen Vermögensumfang für Investoren. Ein leistungsstarkes Matching-Handelssystem sorgt dafür, dass alle Kernoperationen des Benutzers innerhalb von 100 Millisekunden abgeschlossen sind.
+          Einzigartige Handelsfunktionen wie K-Line-Ordering, Super Warehouse, Multi-Stop-Verluste, Dual-Preis-Liquidation,
+         One-Click-Umkehr und mehr helfen Händlern, bessere Entscheidungen zu treffen.`,
+          about_index32:'Handelsgebühr so niedrig wie',
+          about_index5:'Handelspaare',
+          about_index6:'weltweit',
+          about_index7:'Support-Service',
+          about_index8:'Über uns',
+          about_index9:`Unser ultimatives Ziel ist es, Kryptofinanzdienstleistungen mit Hilfe des intelligenten Hochfrequenz-Quantisierungsalgorithmus von Chat GPT zu ermöglichen und damit eine auf der Gemeinschaft basierende, transparente dezentrale Handelsplattform zu schaffen. Unser wichtigstes Werkzeug ist der native Token WEB3.0 Token, der auf der WEB3.0-Plattform basiert`,
+          about_index10:`Der vorhandene DAI wird 1: 1 auf unseren einheimischen Token abgebildet.`,
+          about_index11:'Weltweit führende digitale Asset-Handelsplattform',
+          about_index12:`Hinter uns steht ein herausragendes Team von Kern-Software-Ingenieuren, die fundierte Kenntnisse in Disziplinen wie Mathematik, Informatik, Recht, Wirtschaft, Finanztechnologie und Chat GPT-Technologie haben und über erstklassige technische Fähigkeiten in der Plattformarchitektur und iterative Optimierung verfügen. Sie entwickeln Systeme und Tools zur Marktdatengewinnung, führen Trendanalysen durch, geben Trades frei, verwalten Aufträge, bieten Echtzeit-Handelsunterstützung sowie Risikomanagement- und Nachhandelservices. Daher kann diese Plattform eine Vielzahl von automatisierten und quantitativen Strategien in verschiedenen Anlageklassen einsetzen.`,
+          about_index13:`Der Kern dieser Plattform ist die Anwendung automatisierter Handelstechnologie, dh die Nutzung des führenden AMM-Modells zur Automatisierung von Handelspaarungen. Gleichzeitig erweitern wir unsere Fähigkeiten im Bereich des quantitativen Handels und nutzen Chat GPT Big Data und KI-Technologie, um unsere Modelle zu optimieren und unseren Benutzern ständig bessere Renditechancen als den Markt zu bieten.`,
+          about_index14:'Warum wählen?',
+          about_index15:'Datenschutzrichtlinie',
+          about_index16:'Ultimative Sicherheit durch unbegrenzte Adressgenerierung, 2FA und Mehrfachschutz',
+          about_index17:'Sicherheit der Gelder',
+          about_index18:`Kryptowährungen bieten vollständige Anonymität. Niemand außer Ihnen hat Zugriff auf Ihre Informationen.`,
+          about_index19:'Rechtliche Konformität',
+          about_index20:'Stolz auf die MSB-Finanzlizenz des Legal Financial Traffic and Report Analysis Center',
+          about_index21:'Kundenservice',
+          about_index22:'24-Stunden-Online-Kundenservice zur Beratung und Lösung von Benutzerproblemen',
+          about_index23:'Blog',
+          about_index24:'Aktualisierungen und Analysen von Blockchain-Links und Kryptowährungen aus der Perspektive von DAI-TEST',
+          about_index25:'Handeln Sie nach Belieben, jederzeit und überall',
+          about_index26:'Perfekte Kompatibilität mit mehreren Endgeräten, um den Handelsanforderungen in verschiedenen Szenarien gerecht zu werden',
+          about_index27:'Echtzeit-Marktdaten anzeigen',
+          about_index28:'Einfacher Kauf und Verkauf von BTC, ETH, XRP, OKB und anderen digitalen Assets',
+          about_index29:'Benachrichtigungen über Preisänderungen von Kryptowährungen, die Sie interessieren',
+          about_index30:'Bitcoin-Spot-, Futures- und Optionspreise anzeigen',
+          about_index31:'Vergleichen Sie die Kryptowährungspreise verschiedener Börsen',
+          
+      },
     undefined:{
       undefined:'Die Seite existiert nicht'
     },

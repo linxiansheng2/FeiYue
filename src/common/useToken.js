@@ -4,7 +4,6 @@ export function useToken() {
   const token = reactive({
     value: null,
     expiryDate: null,
-    flag:false
   });
 
   function setToken(value) {
@@ -12,7 +11,6 @@ export function useToken() {
     const now = new Date();
     const expiryDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 天的时间戳
     token.expiryDate = expiryDate;
-    token.flag = true;
     sessionStorage.setItem('token', JSON.stringify(token));
   }
 
@@ -33,7 +31,9 @@ export function useToken() {
   }
 
   function removeToken() {
+    console.log("删除");
     sessionStorage.removeItem('token');
+    window.sessionStorage.clear();
     token.value = null;
     token.expiryDate = null;
     token.flag = false;

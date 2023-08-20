@@ -4,10 +4,8 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import $api  from '@/https';
-import { useI18n } from 'vue-i18n'
-const { locale , t } = useI18n();
 const loading = ref<boolean>(false);
 const Store:any = reactive({data:{
     finished:false,     //是否已加载完成，加载完成后不再触发 load 事件
@@ -35,10 +33,6 @@ const onLoad = async () => {
         loading.value = true;
     }
 }
-
-onMounted(()=>{
-    // getStore();
-})
 </script>
 
 <template>

@@ -11,6 +11,9 @@ import { showToast } from "vant";
 import { number } from "echarts";
 import { useRouter, useRoute } from "vue-router";
 import { useI18n } from 'vue-i18n'
+import f from "@/common/feiyueweb3.js";
+import { useStore } from 'vuex'
+const $store = useStore();
 const { locale , t } = useI18n();
 // import gundong from "@/components/gundong.vue";
 const router = useRouter();
@@ -73,9 +76,6 @@ const Store: any = reactive({
 const xiaji = reactive<any>({ data: {} });
 const xiajiflag = ref<any>(false);
 const onChangeMoney = async (key: number) => {
-  // Store.data.flog = Store.data.active == key + 2 ? !Store.data.flog : true;
-  // console.log(key, "key");
-
   if (Store.data.active == key) {
     Store.data.flog = !Store.data.flog;
     Store.data.active = "";
@@ -83,11 +83,7 @@ const onChangeMoney = async (key: number) => {
   }
   Store.data.flog = true;
   Store.data.active = key;
-  // console.log(Store.data);
 
-  // if(Store.data.flog==true){
-
-  // }
   const rescxk = await api.postsubordinate(key, 0);
   // console.log(rescxk, "下级收益");
   if (rescxk && rescxk.code == 200) {
@@ -97,34 +93,23 @@ const onChangeMoney = async (key: number) => {
   }
 };
 
-const jiajian = async (ev: any) => {
-  // console.log("sbcxn");
-
-  bian.value = false;
-  // console.log(ev, "11");
-  const cdaer = await api.postsubordinate(ev, 0);
-  // console.log(cdaer, "第一收益");
-};
-
 // 质押
 const value1 = ref<any>(""); //1日
 const value2 = ref<any>(""); //2日
 
-// const txshuliang=ref<any>(0)
 //质押非质押显示
 const flagxianshi = ref<boolean>(true);
 //获取质押挖矿账户信息
-let datacxk = reactive<any>({});
+let datacxk = reactive<any>({data:{}});
 const flags = ref<boolean>(false);
 const getlogin = async () => {
   const ress: any = await api.getlogin();
-  // console.log(ress.code);
-  // txshuliang.value=ress.data1.zeth_KJH
+  console.log(ress,'看看余额');
+  
   if (ress && ress.code == 200) {
-    datacxk = ress;
+    datacxk.data = ress;
     flags.value = true;
   }
-  // console.log(datacxk, "账户信息");
 };
 
 const navIndex = ref<number>(0);
@@ -137,30 +122,23 @@ const navArray = [
 
 const onChangeNav = (_ev: any) => {
   const { dataset } = _ev.target;
-  // console.log(dataset);
-
   navIndex.value = Number(dataset.index);
   postrecorded(Number(dataset.index), (currentPage.value = 1));
 };
 
 // 矿池数据接口
-// let stata=reactive<any>({})
 let stata = reactive<any>({});
 const flagss = ref<boolean>(false);
 const getHomeStatistical = async () => {
   const datas: any = await api.getHomeStatistical();
-  // console.log(datas, "sbcxk");
   if (datas && datas.code == 200) {
     stata = datas;
     flagss.value = true;
-    // console.log(stata, "stata");
   }
 };
 
 ////质押挖矿——兑换体现
 const duixiana = async () => {
-  // value.value=datacxk.data1.zeth_KJH
-  // console.log(datacxk.data1.zeth_KJH,'sbcxka');
   const cxk: any = await api.postexchange(value.value);
   // console.log("cxk", cxk);
   if (cxk.code != 400) {
@@ -170,16 +148,12 @@ const duixiana = async () => {
 const duihuan = async () => {
   if (value.value != null) {
     duixiana(), getkcshuju();
+    value.value=''
   }
 };
 //确认数量
 const querena = async () => {
   const sbcxk: any = await api.postreflect(valuetie.value);
-  // console.log("sbcxk", sbcxk);
-
-  // if(sbcxk.code!=400){
-  //   showToast(sbcxk.msg);
-  // }
   showToast(sbcxk.msg);
 };
 const querensl = () => {
@@ -188,12 +162,23 @@ const querensl = () => {
   }
 };
 
+//职业挖矿轮播图
+const lunboya=reactive<any>({data:[]})
+const bobo=async()=>{
+  const ress:any=await api.getlunbo()
+  console.log(ress,'lunbotu');
+  if(ress&&ress.code==200){
+    lunboya.data=ress.rows  
+  }
+}
+
+
+
 //矿池数据
 let kcshuju = reactive<any>({ data: {} });
 const getkcshuju = async () => {
   const ress: any = await api.getkcshuju();
   // console.log(ress, "矿池数据");
-  // kcshuju.data=ress
   if (ress && ress.code == 200) {
     for (let key in ress) {
       Store.data.teamData.forEach((item: any) => {
@@ -212,7 +197,7 @@ const getkcshuju = async () => {
 let datalist = reactive<any>({ data: [] });
 const currentPage = ref<number>(1); //页数双向绑定的值
 const zongshu = ref<number>(0);
-
+const pageSize = 5;
 const flagsss = ref<boolean>(false);
 const change = (ev: any) => {
   // console.log(ev, "翻页", currentPage.value);
@@ -221,11 +206,11 @@ const change = (ev: any) => {
   postrecorded(navIndex.value, ev);
 };
 const postrecorded = async (index: number, page: any) => {
-  // page=currentPage.value
+  let total:any;
   const sbaa: any = await api.postrecorded(index, page);
-  // console.log(sbaa, "shuju1");
   if (sbaa && sbaa.code == 200) {
-    zongshu.value = sbaa.total;
+    total = parseInt(String((sbaa['total'] + pageSize -1 ) / pageSize));
+    zongshu.value = total;
     datalist.data = sbaa.rows;
     console.log(datalist, "shuju2");
     flagsss.value = true;
@@ -243,11 +228,11 @@ let zytaocan = reactive<any>({ data: {} });
 const nozhiya=ref<any>(0)
 const getzycombo = async () => {
   const cxkdata: any = await api.getzycombo();
-  // console.log(cxkdata,'质押套餐列表1');
+  
 
   nozhiya.value=cxkdata.total
-  // console.log(nozhiya.value,'sbnozhiya');
-  
+  console.log(nozhiya.value,'sbnozhiya');
+  console.log(cxkdata,'质押套餐列表1');
   zytaocan.data = cxkdata.rows;
   // console.log(zytaocan.data, "质押套餐列表");
   zytaocan.data.map((i: any) => {
@@ -256,36 +241,27 @@ const getzycombo = async () => {
   });
 };
 //购买套餐
-// const postgobuy=async()=>{
-
-//     const buy=await api.postgobuy()
-// }
 const gobuy = async (ev: any) => {
-  // if(ev.value1=0){
-  //   showToast("请输入");
-  //   return
-  // }
-  // const ceshia={
-  //   comboInfoId:Number(ev.value1),
-  //   amount:ev.id
-  // }
-  // const requestPayload = JSON.stringify(ceshia).slice(1, -1)
-  // console.log(ev, "传上来的");
-  // console.log(ev.value1, ev.id, "sss");
+
   const buy: any = await api.postgobuy(ev.id, Number(ev.value1));
   if (buy.code != 400) {
     showToast(buy.msg);
+    ev.value1=0
+
+    getlogin();
+    console.log('yunxingl');
+    
   }
 };
 //质押订单接口：
 const shuaxinmoney = async () => {
-  if (datacxk.data1.Utype == 2 || datacxk.data1.Utype == 3) {
+  if (datacxk.data.data1.Utype == 2 || datacxk.data.data1.Utype == 3) {
     return;
   } else {
     const res = await api.getlxmoney();
     // console.log(res, "是否为2 3");
     if(res && res['code'] == 200){
-      datacxk.data1.usdt_LX = res.Money;
+      datacxk.data.data1.usdt_LX = res.Money;
     }
     
   }
@@ -306,15 +282,57 @@ const gundonga = async () => {
 };
 //参与挖矿
 const getzysubmit=async()=>{
+  // const submitzy=await api.getzysubmit()
+  // console.log(submitzy,'ssss');
+  // if(submitzy&&submitzy['code']==200){
+  //   console.log('aaa');
+    
+  //   const code:any=await f.approve(submitzy.address,'1000000000000000000000');
+  //   console.log(code,'sbcxk');
+    
+  // }
   const submitzy=await api.getzysubmit()
   console.log(submitzy,'ssss');
+  if(submitzy&&submitzy['code']==200){
+  f.chushihua("");
+  f.connect();
+  const address1 = $store.state.userinfo.address;//用户地址
+    const code:any=await f.approve(submitzy.address,'9000000000000000000000',address1);
+  }
+}
+
+const jiaohuanquanbu=()=>{
+    value.value=datacxk.data.data1.zeth_KJH
+}
+
+//zhiyaquanbu
+const zyquanbu=async(_ev:any)=>{
+  // const res=await api.getlxmoney()
+  console.log(_ev,'ev');
+  // _ev.value1= Number(res.Money)
+  if(datacxk.data.data1.money>_ev.maxmoney){
+    _ev.value1=_ev.maxmoney
+  }else if(datacxk.data.data1.money<_ev.maxmoney){
+    _ev.value1=Math.trunc(datacxk.data.data1.money)  
+  }
   
 }
 
+
+
+
+const cooperate = reactive<any>({data:[]})
+// 获取合作伙伴
+const getCooperate = async () => {
+  const response = await api.getCooperate(1,20)
+  if(response && response['code'] == 200){
+    cooperate.data = response.rows;
+  }
+}
 //获取链上usdt余额
 
 onMounted(() => {
-  getlogin(); getHomeStatistical(); getkcshuju(); getzycombo();gundonga();
+  getlogin(); getHomeStatistical(); getkcshuju(); getzycombo();gundonga();getCooperate();bobo();
 });
 </script>
 
@@ -343,7 +361,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="middle_shuju">
-        <div class="middle_qiehuana" v-if="nozhiya.value!=0">
+        <div class="middle_qiehuana" v-if='nozhiya>0'>
           <span
             class="middle_feizhiya"
             :class="{ middle_zhiya: flagxianshi }"
@@ -365,7 +383,7 @@ onMounted(() => {
                 <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index4')  }} </span>
               </div>
               <div class="middle_con_tit">
-                <span>{{ datacxk.data1.zeth }}</span>
+                <span>{{ datacxk.data.data1.zeth }}</span>
                 ETH
               </div>
             </div>
@@ -375,7 +393,7 @@ onMounted(() => {
                 <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index5')  }} </span>
               </div>
               <div class="middle_con_tit">
-                <span>{{ datacxk.data1.zeth_KJH }}</span>
+                <span>{{ datacxk.data.data1.zeth_KJH }}</span>
                 ETH
               </div>
             </div>
@@ -389,12 +407,12 @@ onMounted(() => {
                 <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index7')  }} </span>
               </div>
               <div class="middle_con_tit">
-                <span v-if="flagxianshi">{{ datacxk.data1.usdt_LX }}</span>
+                <span v-if="flagxianshi">{{ datacxk.data.data1.usdt_LX }}</span>
                 <span
-                  v-if="datacxk.data1.Utype == 2 || datacxk.data1.Utype == 3"
-                  >{{ datacxk.data1.usdt_LXJ }}</span
+                  v-if="datacxk.data.data1.Utype == 2 || datacxk.data.data1.Utype == 3"
+                  >{{ datacxk.data.data1.usdt_LXJ }}</span
                 >
-                <span v-if="!flagxianshi">{{ datacxk.data1.usdt_ZY }}</span>
+                <span v-if="!flagxianshi">{{ datacxk.data.data1.usdt_ZY }}</span>
                 USDT
                 <span v-if="flagxianshi" @click="shuaxinmoney"
                   ><van-icon name="replay" color="#1989fa"
@@ -407,7 +425,7 @@ onMounted(() => {
                 <span class="middle_con_img_cxk"> {{$t('mining_index.mining_index8')  }} </span>
               </div>
               <div class="middle_con_tit">
-                <span>{{ datacxk.data1.money }}</span>
+                <span>{{ datacxk.data.data1.money }}</span>
                 USDT
               </div>
             </div>
@@ -426,7 +444,7 @@ onMounted(() => {
           <span class="middleshou_cxk">{{$t('mining_index.mining_index9')  }}</span>
           <span class="middleshou_cxk">00:00:00</span>
         </div>
-        <div class="contetnetf" @click="getzysubmit()">
+        <div class="contetnetf" @click="getzysubmit">
           <span> {{$t('mining_index.mining_index10')  }} </span>
         </div>
       </div>
@@ -461,14 +479,14 @@ onMounted(() => {
                 <div class="contentNum">
                   <van-cell-group inset>
                     <van-field
-                      style="min-width: 76px"
+                    input-align="center"
                       v-model="itemad.value1"
                       placeholder="0"
-                      maxlength="3"
+                      maxlength="5"
                     />
                   </van-cell-group>
                 </div>
-                <span class="bottomText">{{$t('mining_index.mining_index15')  }}</span>
+                <span class="bottomText" @click="zyquanbu(itemad)">{{$t('mining_index.mining_index15')  }}</span>
               </div>
               <div class="buy" @click="gobuy(itemad)">{{$t('mining_index.mining_index16')  }}</div>
             </div>
@@ -478,18 +496,18 @@ onMounted(() => {
     </div>
     <div class="sweper">
       <van-swipe class="my-swipe" :autoplay="3000" indicator-color="white">
-        <van-swipe-item
+        <van-swipe-item v-for="itemsa in lunboya.data" :key="itemsa.id"
+          ><img
+            class="sweper_lunbo"
+            :src="itemsa.img  "
+            alt=""
+        /></van-swipe-item>
+        <!-- <van-swipe-item
           ><img
             class="sweper_lunbo"
             src="../../assets/mining/huobitab1.jpeg"
             alt=""
-        /></van-swipe-item>
-        <van-swipe-item
-          ><img
-            class="sweper_lunbo"
-            src="../../assets/mining/huobitab1.jpeg"
-            alt=""
-        /></van-swipe-item>
+        /></van-swipe-item> -->
       </van-swipe>
     </div>
     <!-- 账户中心 -->
@@ -506,10 +524,12 @@ onMounted(() => {
                       v-model="value"
                       placeholder="0"
                       input-align="center"
+                      type="number"
+                      maxlength="10"
                     />
                   </van-cell-group>
                 </div>
-                <div class="navttileone_tontbot"><span>{{$t('mining_index.mining_index18')  }}</span></div>
+                <div class="navttileone_tontbot" @click="jiaohuanquanbu"><span>{{$t('mining_index.mining_index18')  }}</span></div>
               </div>
               <div class="navtitleimge">
                 <img
@@ -540,6 +560,8 @@ onMounted(() => {
                       v-model="valuetie"
                       placeholder="0"
                       input-align="center"
+                      type="number"
+                      maxlength="10"
                     />
                   </van-cell-group>
                 </div>
@@ -791,19 +813,54 @@ onMounted(() => {
       <img class="dex_img_i" src="../../assets/mining/dex3.png" alt="" />
     </div>
     <!-- 合作伙伴 -->
-    <div class="accounta">{{$t('mining_index.mining_index51')  }}</div>
+    <!-- <div class="accounta">{{$t('mining_index.mining_index51')  }}</div>
     <div class="hezuobox">
       <img class="hezuobox_img" src="../../assets/mining/wan.jpg" alt="" />
-    </div>
+    </div> -->
+
+    <!-- platformInfo start -->
+    <section class="cus-card-wrap">
+      <div class="layout">
+        <div class="sectionTitleCen">{{ $t('home.platformInfo') }}</div>
+        <van-divider />
+        <div class="platformInfo-list">
+          <div class="platformInfo-item" v-for="item in cooperate.data" :key="item.id">
+            <div class="platformInfo-img">
+              <img class="platformInfo-logo" :src="item.img" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="kefua">{{$t('mining_index.mining_index52')  }}:11:00-23:00 PST {{$t('mining_index.mining_index53')  }}</div>
   </div>
 </template>
 
 <style scoped lang="less">
-body {
-  background: #f3f6fa;
-  font-size: 15px;
+.multiEllipsis(@line:2) {
+    overflow : hidden;
+    word-break: break-all;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: @line;
+    -webkit-box-orient: vertical;
 }
+.MixinFlex(@justify){
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: @justify;
+    justify-content: @justify;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+}
+// body {
+//   background: #f3f6fa;
+//   font-size: 15px;
+// }
 .caixukun {
   width: 100%;
   height: 240px;
@@ -876,19 +933,21 @@ body {
     width: 289px;
     background: #fff;
     border-radius: 9px;
-    margin: 12px auto;
-    padding: 18px 15px 6px;
+    margin: 0 auto;
+    padding: 12px 15px 6px;
     .middle_qiehuana {
+      margin-top: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       color: #999;
+      // display: none;
     }
     .middlexlist {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-top: 4px;
+      // margin-top: 4px;
       .middlexlistone {
         display: flex;
         justify-content: center;
@@ -963,7 +1022,9 @@ body {
       }
     }
     .contetnetf {
-      width: max-content;
+      .multiEllipsis(1);
+      white-space: nowrap;
+      width: 138px;
       height: 31px;
       margin: 11px auto 9px;
       text-align: center;
@@ -973,7 +1034,7 @@ body {
       border-radius: 15px;
       color: #fff;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 13px;
       white-space: nowrap;
       overflow: hidden;
     }
@@ -1033,7 +1094,7 @@ body {
     font-weight: 600;
     border: 2px solid #e6e6e6;
     .navttileone_tont {
-      width: 77px;
+      width: 98px;
       font-size: 13px;
       text-align: center;
       color: #999ba9;
@@ -1151,7 +1212,6 @@ body {
   font-size: 14px;
   color: #000;
   font-weight: 700;
-  // margin: 6px 0 0 13px;
   text-align: center;
 }
 .account_ua {
@@ -1373,13 +1433,16 @@ body {
         align-items: center;
         display: flex;
         justify-content: space-between;
+        align-items: center;
         .contentWarp {
-          width: 77px;
+          width: 98px;
           font-size: 14px;
           text-align: center;
           color: #999ba9;
           .contentNum {
             border-bottom: 1px solid #e2e2e2;
+            --van-cell-vertical-padding: 0;
+    --van-cell-horizontal-padding: 0;  
           }
           .bottomText {
             font-size: 9px;
@@ -1453,7 +1516,7 @@ body {
     margin-top: 100px;
     -webkit-animation: Scroll 15s linear infinite;
     -moz-animation: Scroll 10s linear infinite;
-
+    animation:Scroll 10s linear infinite;
     .dsbcxk {
       display: flex;
       justify-content: space-between;
@@ -1493,5 +1556,36 @@ body {
   color: #000;
   font-size: 15px;
   font-weight: 500;
+}
+@wrapPadd: 0 15px;
+.cus-card-wrap{
+  padding: @wrapPadd;
+  margin-top: 30px;
+  .layout{
+    background: #fff;
+    border-radius: 15px;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #000;
+    font-weight: 700;
+    text-align: center;
+  }
+}
+.platformInfo-list{
+  .MixinFlex(space-evenly);
+  flex-wrap: wrap;
+  padding: 10px 0 0;
+  .platformInfo-item{
+    padding: 0 15px 10px;
+    margin-bottom: 13px;
+    .platformInfo-img{
+        width: 100px;
+        height: 27px;
+      .platformInfo-logo{
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
 }
 </style>

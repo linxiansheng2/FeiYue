@@ -1,3 +1,4 @@
+// 繁体中文
 export default {
   silder:{
     menu1:'首页',
@@ -16,7 +17,8 @@ export default {
     menu8_1:'平台公告',
     menu8_2:'白皮書',
     menu8_3:'服務條款',
-    clearcache:'清除緩存'
+    clearcache:'清除緩存',
+    score:'信用分'
   },
   menu:{
     navAsset:'資產中心',
@@ -65,6 +67,7 @@ export default {
       cztitle:'快速充值',
       czsubtitle:'快速且安全',
       cz:'充值',
+      home01:'開始交易'
   },
   assetcenter_index:{
     assetcenter1:'總資產賬戶',
@@ -345,6 +348,10 @@ export default {
     share_index30:'确定',
     share_index31:'复制成功',
     share_index32:'复制失败',
+    share_index33:'分配紅利圖',
+    share_index34:'享受高達 5 %的紅利',
+    share_index35:'分配紅利圖',
+    share_index36:'享受團隊獎勵'
     
   },
   //邀请好友-我的收益-详情
@@ -396,6 +403,54 @@ export default {
       pledgerecord_index_navArray2:'已完成'
     }
 
+  },
+  about_index:{
+    about_index1:'快捷,安全,輕鬆交易600多種加密貨幣',
+    about_index2:'全球領先的數字資產交易平台',
+    about_index3:'國際化交易平台',
+    about_index4:`唯一完全受監管的代幣化量化交易所,具備速度、靈活性、以及投資者所需的資產範圍。強
+    大的撮合交易系統,保證用戶所有核心操作100毫秒內完成。
+    K線下單、超級和倉、多元止盈止損、雙價格強平、
+    一鍵反轉等特色交易功能，幫助交易者做出更好的決策。`,
+    about_index32:'交易費率低至',
+    about_index5:'交易對',
+    about_index6:'全球區域',
+    about_index7:'服務支持',
+    about_index8:'關於我們',
+    about_index9:`我們的最終目標是通過Chat
+    GPT智能高頻量化交易算法為加密金融服務賦能,
+    從而創建一個以社區為基礎的、操作透明去中心化的交易平台。我們的重要工具是基於WEB3.0平台的原生代幣WEB3.0
+    Token`,
+    about_index10:`ChatGPT,現有的DAI將會1:1映射到我們的原生代幣上。我們能夠提供
+    更為完整和獨特的區塊鏈業務版塊,為加密貨幣的智能高頻量化交易和
+    金融創新提供一整套解決方案,並結合代幣經濟學,賦予全球商業和金融更大的活
+    力與參與度。`,
+    about_index11:'全球領先的數字資產交易平台',
+    about_index12:`我們的背後是卓越的核心程序工程師團隊,他們精通數學、計算機編程、法律、經濟學、金融Chat
+    GPT技術等學科理論,擁有平台架構和迭代優化的頂尖技術能力,包括開發獲取市場數據的系統和工具,
+    執行趨勢分析,運行交易模擬，訂單輸入和管理，實時交易支持，風險管理和交易後服務。
+    因此本平台能夠在廣泛的資產類別中部署各種自動化和量化策略。`,
+    about_index13:`本平台的核心是自動化交易技術應用,即利用領先的AMM模式實現自動交易匹配。同時,我們注重量化交易能力的拓展,充分運用Chat
+    GPT大數據和AI技術優化我們的模型,從而讓我們的用戶始終獲得優於市場水平的收益機會。`,
+    about_index14:'為什麼選擇',
+    about_index15:'隱私策略',
+    about_index16:'通過無限制的地址創建、2FA和多層保護實現終極安全',
+    about_index17:'資金安全',
+    about_index18:'加密數字貨幣提供了完全的匿名性除了您自己沒人可以訪問您的信息',
+    about_index19:'法律合規性',
+    about_index20:'自豪地擁有合法金融交易和報告分析中心頒發的MSB金融許可證全',
+    about_index21:'客戶服務',
+    about_index22:'24小時在線客戶服務,為您提供諮詢服務,及時解決用戶問題',
+    about_index23:'博客',
+    about_index24:'從DAI-TEST的角度對區塊鏈接和加密貨幣進行更新和分析',
+    about_index25:'隨心交易、隨時隨地',
+    about_index26:'多終端完美兼容，隨時滿足各種場景的交易需求',
+    about_index27:'隨時查看實時行情',
+    about_index28:'輕鬆買賣BTC、ETH、XRP、OKB和其他數字資產',
+    about_index29:'獲取您關注的加密貨幣價格變化預警',
+    about_index30:'看比特幣現貨、期貨、期權價格',
+    about_index31:'比较各交易所加密货币价',
+    
   },
   undefined:{
     undefined:'页面不存在'

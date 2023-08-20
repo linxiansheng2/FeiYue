@@ -142,6 +142,7 @@ onMounted(() => {
         font-size: 18px;
         color: #010101;
         text-transform: uppercase;
+        white-space: nowrap;
         .bullish {
           background: #00c693;
           color: #fff;

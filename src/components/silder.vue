@@ -10,8 +10,6 @@ export default {
     import { vantLocales } from '@/lang'
     import { useI18n } from 'vue-i18n'
     import { useStore } from 'vuex'
-    import { useToken } from '@/common/useToken';
-    const { getToken, removeToken } = useToken();
     const $store = useStore();
     const { locale , t } = useI18n();
     const props = defineProps(["silderflog"]);
@@ -23,6 +21,7 @@ export default {
     const userStore = computed(()=>$store.state.userinfo);
     const loginStore = computed(()=>$store.state.login);
     const WebConfig = computed(()=>$store.state.webconfig);
+    
     // 导航数据
     const silderData:any = reactive({data:[
         {title:t('silder.menu1'),url:'/'},
@@ -43,7 +42,7 @@ export default {
         {title:t('silder.menu8'),url:'/',type:'add',child:[
             {title:t('silder.menu8_1'),url:'/proclamation'},
             {title:t('silder.menu8_2'),url:WebConfig.value['white_paper'],useAtag:true,ukey:'white_paper'},
-            {title:t('silder.menu8_3'),url:WebConfig.value['terms_of_service'],useAtag:true,ukey:'online_kefu'}
+            {title:t('silder.menu8_3'),url:WebConfig.value['terms_of_service'],useAtag:true,ukey:'terms_of_service'}
         ]},
     ]})
     // username.replace(/(\w*)(\d{4})/, "$1****")
@@ -84,7 +83,6 @@ export default {
     // 清除缓存
     const handleReCache = () => {
         window.sessionStorage.clear();
-        removeToken();
         document.cookie = "cookieName=; path=/;";
         setTimeout(() => {
             location.reload();
@@ -150,8 +148,9 @@ export default {
                             <div class="user-avatar"><img src="../assets/silder/userava.png"></div>
                             <div>
                                 <div class="user-name">{{ userStore['address']? userStore['address'].replace(/^(.{4})(?:\w+)(.{4})$/,"$1****$2") : '' }}</div>
-                                <div class="user-id">Invite: {{ userStore['id'] }} <van-icon color="#4366EA" name="brush-o"/></div>
-                                <div class="user-score">Credit Score:100</div>
+                                <div class="user-id">ID: {{ userStore['id'] }} </div>
+                                <!-- <van-icon color="#4366EA" name="brush-o"/> -->
+                                <div class="user-score">{{ $t('silder.score') }}:100</div>
                             </div>
                         </div>
                         <van-divider />
@@ -219,44 +218,6 @@ export default {
     -webkit-align-items: center;
     align-items: center;
 }
-
-.nav-box{
-    background-color: @themeBgColor;
-    height: 60px;
-    .flex-dom(space-between);
-    box-shadow: 0 4px 4px rgba(97,6,243,.04);
-    padding: 0 16px;
-    .nav-left{
-        height: 40px;
-        .flex-dom(space-between);
-        gap: 8px;
-        .logo{
-            min-width: 150px;
-            height: 37px;
-            -webkit-animation: scalelogo 1.5s 0s ease both infinite;
-            -moz-animation: scalelogo 1.5s 0s ease both infinite;
-            animation:scalelogo 1.5s 0s ease both infinite;
-        }
-    }
-    .nav-right{
-        width: 114px;
-        height: 39px;
-        border-radius: 6px;
-        color: #fff;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-        background: -webkit-linear-gradient(right,#607cff,#4570fe);
-        background: linear-gradient(270deg,#607cff,#4570fe);
-        border-radius: 15px;
-        .flex-dom(center);
-        .nav-addre-txt{
-            padding-left: 5px;
-            font-size: 15px;
-        }
-    }
-}
-
 
 .loading-img{
     height: 2rem;
@@ -395,20 +356,6 @@ export default {
         }
 }
 
-  @keyframes scalelogo{
-    0% {
-        --webkit-transform: scale(1);
-        transform: scale(1);
-    }
-    50% {
-        --webkit-transform: scale(1);
-        transform: scale(.9);
-    }
-    100% {
-        --webkit-transform: scale(1);
-        transform: scale(1);
-    }
-  }
   @keyframes rotateanime{
     0% {
         --webkit-transform: rotate(0deg);

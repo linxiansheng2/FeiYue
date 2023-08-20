@@ -181,7 +181,7 @@ onMounted(() => {
             </div>
             <div class="saddress">
               <div class="saddress_ress">{{ itema.address }}</div>
-              <div>{{ itema.create_time }}</div>
+              <div class="saddress_time">{{ itema.create_time }}</div>
             </div>
           </div>
         </div>
@@ -314,15 +314,15 @@ onMounted(() => {
   background-color: #fff;
   margin-top: 10px;
   border-radius: 10px;
-  
+  padding: 5px;
 }
 .tantantan{
   display: flex;
   align-items: center;
 }
 .imgsxksb {
-  width: 50px;
-  height: 50px;
+  width: 38px;
+  height: 38px;
 }
 .saddress {
   margin-left: 10px;
@@ -331,6 +331,9 @@ onMounted(() => {
   font-weight: 500;
   font-size: 15px;
   color: #333;
+}
+.saddress_time{
+  font-size: 13px;
 }
 .dongadong{
   display: flex;
@@ -350,21 +353,23 @@ onMounted(() => {
 }
 .san{
   width: 33%;
-  margin-left: 5px;
+  margin-left: 8px;
   font-weight: 500;
   font-size: 14px;
   color: #333;
 }
 .san1{
-  width: 50%;
+  width: 45%;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   color: #333;
+
 }
 .san2{
-  width: 12%;
+  width: 20%;
   font-weight: 500;
   font-size: 14px;
   color: #333;
+  text-align: center;
 }
 </style>

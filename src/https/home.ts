@@ -28,5 +28,9 @@ export default {
 	// 获取程序配置
 	getfindConfigList(){
 		return instance.post('api/public/config.php/findConfigList')
+	},
+	// 主功能平台公告
+	getMainmessage(){
+		return instance.post('api/clien/popup_message.php/popup_message')
 	}
 }

@@ -4,38 +4,53 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import api from "../../https";
-const datas=reactive<any>({data:{}})
-const flag=ref<boolean>(false)
-const postabout=async()=>{
-  const sbcxk=await api.postabout()
-  console.log(sbcxk,'sb');
- 
-  
-   if(sbcxk && sbcxk['code'] == 200){
-    datas.data=sbcxk
-    flag.value=true;
-   }
-  
-}
-onMounted(()=>{
-  postabout()
-})
+import { useStore } from "vuex";
+import { useI18n } from 'vue-i18n'
+const { locale , t } = useI18n();
+
+const $store = useStore();
+const anboutzong = reactive<any>({ data: {} });
+const getlogoa = async () => {
+  const res = await api.getlogoa();
+  console.log(res, "11");
+
+  if (res && res["code"] == 200) {
+    anboutzong.data = res.data;
+    console.log(anboutzong.value, "anboutzong.value");
+  }
+};
+// const WebConfig = computed(()=>$store.state.webconfig.value.title);
+// console.log(WebConfig,'rldw');
+
+// anboutzong.value=WebConfig
+const datas = reactive<any>({ data: {} });
+const flag = ref<boolean>(false);
+const postabout = async () => {
+  const sbcxk = await api.postabout();
+  console.log(sbcxk, "sb");
+
+  if (sbcxk && sbcxk["code"] == 200) {
+    datas.data = sbcxk;
+    flag.value = true;
+  }
+};
+onMounted(() => {
+  postabout();
+  getlogoa();
+});
 </script>
 
 <template>
   <div v-if="flag">
-    <!-- <div class="about_top">
-      <h1 class="about_h1">快捷,安全,輕鬆交易600多種加密貨幣</h1>
-      <p class="desc">全球領先的數字資產交易平台</p>
+    <div class="about_top">
+      <h1 class="about_h1">{{$t('about_index.about_index1')  }}</h1>
+      <p class="desc">{{$t('about_index.about_index2')  }}</p>
       <img class="desc_img" src="../../assets/mining/ETH-1.png" alt="" />
-      <h3 class="tit">LOGOIPSUM002 國際化交易平台</h3>
-      <p class="desc2">
-        唯一完全受監管的代幣化量化交易所,具備速度、靈活性、以及投資者所需的資產範圍。強
-        大的撮合交易系統,保證用戶所有核心操作100毫秒內完成。
-        K線下單、超級和倉、多元止盈止損、雙價格強平、
-        一鍵反轉等特色交易功能，幫助交易者做出更好的決策。
+      <h3 class="tit">{{ anboutzong.data.h5_title }} {{$t('about_index.about_index3')  }}</h3>
+      <p class="desc2 pdolor">
+        {{$t('about_index.about_index4')  }}
       </p>
       <div class="content">
         <div class="circuit-top">
@@ -44,98 +59,202 @@ onMounted(()=>{
         <div class="about-box">
           <div class="box">
             <p class="tit1">0.05%</p>
-            <p>交易費率低至</p>
+            <p>{{$t('about_index.about_index32')  }}</p>
           </div>
           <div class="box">
             <p class="tit1">200+</p>
-            <p>交易對</p>
+            <p>{{$t('about_index.about_index5')  }}</p>
           </div>
           <div class="box">
             <p class="tit1">100+</p>
-            <p>全球區域</p>
+            <p>{{$t('about_index.about_index6')  }}</p>
           </div>
           <div class="box">
             <p class="tit1">24 / 7</p>
-            <p>服務支持</p>
+            <p>{{$t('about_index.about_index7')  }}</p>
           </div>
         </div>
-        <h3 class="tit" style="margin-top: 20px">關於我們</h3>
+        <h3 class="tit" style="margin-top: 20px">{{$t('about_index.about_index8')  }}</h3>
         <div class="tit_p">
-          <p
-            >SBQ成立於2021年,並且獲得美國 FinCEN 頒發的 MSB(Money Se rvices
-            Business)牌照。此前美國本土交易所與幣安、火幣等全球化交易所已先後獲得該牌照，
-            正式開展面向美國用戶的區塊鏈資產交易服務。
-            SBQ獨特的產品定位,成為首家獲得美國牌照的量化交易所。</p
-          >
-          <p
-            >根據每天的現貨交易量和深厚的流動性，我們一直被評為全球
-            十大受監管的加密貨幣量化交易所之一。我們致力於提供出色的用戶體驗和世界一流的服務水平。</p
-          >
-          <p
-            >我們的使命是建立一個適合所有市場參與者的安全且
+          <p class="pdolor">
+            <span
+              >{{$t('about_index.about_index9')  }}</span
+            ><span>
+              {{$t('about_index.about_index10')  }}
+            </span>
+          </p>
+          <!-- <p class="pdolor">
+            根據每天的現貨交易量和深厚的流動性，我們一直被評為全球
+            十大受監管的加密貨幣量化交易所之一。我們致力於提供出色的用戶體驗和世界一流的服務水平。
+          </p>
+          <p>
+            我們的使命是建立一個適合所有市場參與者的安全且
             先進的加密貨幣生態系統。的核心是機構級交易所，可通過進入新市場和法
-            定網關來滿足區塊鏈項目和消費者的需求。</p
-          >
+            定網關來滿足區塊鏈項目和消費者的需求。
+          </p> -->
         </div>
         <div>
-            <h3 class="tit" style="margin-top: 20px;">全球領先的數字資產交易平台</h3>
-            <div>
-                <p>SBQ開創性結合了隱私錢包、現貨買賣、合約槓桿、Defi挖礦、儲
-                    蓄理財等等。為機構用戶、家族基金、個人用戶提供投資加
-                    密貨幣市場的專業解決方案與具有競爭力的產品
-                    ，使用戶能夠在不斷變化的加密金融市場中穩健獲得價值。</p>
-                    <p>作為集行情、資產管理、網格量化交易一站式 App。我們為所有市場提供卓越的流動性和有競爭力的價格
-                        ，因此您可以快速、自信地實現您的投資目標。</p>
-            </div>
+          <h3 class="tit" style="margin-top: 20px">
+            {{$t('about_index.about_index11')  }}
+          </h3>
+          <div>
+            <p class="pdolor">
+              {{$t('about_index.about_index12')  }}
+            </p>
+            <p class="pdolor">
+              {{$t('about_index.about_index13')  }}
+            </p>
+          </div>
         </div>
       </div>
       <div class="content">
         <div class="circuit-top">
           <img style="width: 100%" src="../../assets/mining/362a.png" alt="" />
         </div>
-        <h3 class="tit" style="margin-top: 20px;">為什麼選擇LOGOIPSUM002</h3>
+        <h3 class="tit" style="margin-top: 20px">{{$t('about_index.about_index14')  }} DAI-TEST</h3>
         <div class="why-warp">
-            <img class="desc_img" src="../../assets/mining/jie2.png" alt="">
+          <!-- <img class="desc_img" src="../../assets/mining/jie2.png" alt=""> -->
+          <div>
+            <img class="why_imng" src="../../assets/mining/about1.png" alt="" />
+          </div>
+          <div class="why_title">
+            <h5 class="why-tit">{{$t('about_index.about_index15')  }}</h5>
+            <p class="why_p">{{$t('about_index.about_index16')  }}</p>
+          </div>
+        </div>
+        <div class="why-warp">
+          <!-- <img class="desc_img" src="../../assets/mining/jie2.png" alt=""> -->
+          <div>
+            <img class="why_imng" src="../../assets/mining/about2.png" alt="" />
+          </div>
+          <div class="why_title">
+            <h5 class="why-tit">{{$t('about_index.about_index17')  }}</h5>
+            <p class="why_p">
+              {{$t('about_index.about_index18')  }}
+            </p>
+          </div>
+        </div>
+        <div class="why-warp">
+          <!-- <img class="desc_img" src="../../assets/mining/jie2.png" alt=""> -->
+          <div>
+            <img class="why_imng" src="../../assets/mining/about3.png" alt="" />
+          </div>
+          <div class="why_title">
+            <h5 class="why-tit">{{$t('about_index.about_index19')  }}</h5>
+            <p class="why_p">
+              DAI-TEST{{$t('about_index.about_index20')  }}
+            </p>
+          </div>
+        </div>
+        <div class="why-warp">
+          <!-- <img class="desc_img" src="../../assets/mining/jie2.png" alt=""> -->
+          <div>
+            <img class="why_imng" src="../../assets/mining/about4.png" alt="" />
+          </div>
+          <div class="why_title">
+            <h5 class="why-tit">{{$t('about_index.about_index21')  }}</h5>
+            <p class="why_p">
+              {{$t('about_index.about_index22')  }}
+            </p>
+          </div>
+        </div>
+        <div class="why-warp">
+          <!-- <img class="desc_img" src="../../assets/mining/jie2.png" alt=""> -->
+          <div>
+            <img class="why_imng" src="../../assets/mining/about5.png" alt="" />
+          </div>
+          <div class="why_title">
+            <h5 class="why-tit">{{$t('about_index.about_index23')  }}</h5>
+            <p class="why_p">
+              {{$t('about_index.about_index24')  }}
+            </p>
+          </div>
         </div>
       </div>
       <div class="content">
-            <h2 class="sbcxk">隨心交易、隨時隨地</h2>
-            <p>多終端完美兼容，隨時滿足各種場景的交易需求</p>
-            <div>
-                <img class="desc_img2" src="../../assets/mining/phone.png" alt="">
-            </div>
-            <div>
-                <img class="desc_img" src="../../assets/mining/xiajie.png" alt="">
-            </div>
+        <h2 class="sbcxk">{{$t('about_index.about_index25')  }}</h2>
+        <p>{{$t('about_index.about_index26')  }}</p>
+        <div>
+          <img class="desc_img2" src="../../assets/mining/phone.png" alt="" />
+        </div>
+        <div class="abotomm">
+          <!-- <img class="desc_img" src="../../assets/mining/xiajie.png" alt="" /> -->
+          <div>
+            <img class="abotommimg" src="../../assets/mining/about6.png" />
+          </div>
+          <p class="abotomm_sui">{{$t('about_index.about_index27')  }}</p>
+        </div>
+        <div class="abotomm">
+          <!-- <img class="desc_img" src="../../assets/mining/xiajie.png" alt="" /> -->
+          <div>
+            <img class="abotommimg" src="../../assets/mining/about6.png" />
+          </div>
+          <p class="abotomm_sui">{{$t('about_index.about_index28')  }}</p>
+        </div>
+        <div class="abotomm">
+          <!-- <img class="desc_img" src="../../assets/mining/xiajie.png" alt="" /> -->
+          <div>
+            <img class="abotommimg" src="../../assets/mining/about6.png" />
+          </div>
+          <p class="abotomm_sui">{{$t('about_index.about_index29')  }}</p>
+        </div>
+        <div class="abotomm">
+          <!-- <img class="desc_img" src="../../assets/mining/xiajie.png" alt="" /> -->
+          <div>
+            <img class="abotommimg" src="../../assets/mining/about6.png" />
+          </div>
+          <p class="abotomm_sui">{{$t('about_index.about_index30')  }}</p>
+        </div>
+        <div class="abotomm">
+          <!-- <img class="desc_img" src="../../assets/mining/xiajie.png" alt="" /> -->
+          <div>
+            <img class="abotommimg" src="../../assets/mining/about6.png" />
+          </div>
+          <p class="abotomm_sui">{{$t('about_index.about_index31')  }}</p>
+        </div>
       </div>
-    </div> -->
-    <div class="about_top">
-      <!-- <img class="about_img" :src=datas.data.data1.img  alt=""> -->
-          <div class="shaniao" v-html="datas.data.data1.body"></div>
-
-        
     </div>
-  
+    <div class="bbbom">
+      <p class="bomp">CopyRight@2023 All Rights Reserved</p>
+    </div>
+    <!-- <div class="about_top"> -->
+    <!-- <img class="about_img" :src=datas.data.data1.img  alt=""> -->
+    <!-- <div class="shaniao" v-html="datas.data.data1.body"></div> -->
+
+    <!-- </div> -->
+    <!-- <div></div> -->
   </div>
 </template>
 
 <style scoped lang="less">
-:deep(.shaniao img){
-    width: 100%;
+:deep(.shaniao img) {
+  width: 100%;
+}
+.pdolor {
+  color: #1e2329;
+  font-size: 15px;
 }
 .about_top {
   padding: 0 19px;
-  // margin-top: px;
-      background-color: #fff;
+  margin-top: -20px;
+  background-color: #fff;
 }
-.about_img{
+.about_img {
   width: 100%;
 }
 .about_h1 {
   font-size: 28px;
   margin: 19px 0;
   text-align: center;
-  
+}
+.why-tit {
+  font-size: 20px;
+  margin: 0 0 5px;
+  text-align: center;
+}
+.why_p {
+  font-size: 17px;
+  margin: 0 auto;
 }
 .desc {
   text-align: center;
@@ -162,7 +281,7 @@ onMounted(()=>{
   }
 }
 .tit {
-  font-size: 28px;
+  font-size: 31px;
   color: #2850e7;
   text-align: center;
   margin-bottom: 19px;
@@ -193,28 +312,67 @@ onMounted(()=>{
   font-size: 16px;
   margin: 20px 0;
 }
-.why-warp{
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 40px;
+.why_imng {
+  width: 55px;
+  // height: 60px;
 }
-.sbcxk{
-    font-size: 27px;
-    margin-top: 0px;
-    text-align: center;
+.why-warp {
+  // display: grid;
+  // grid-template-columns: 1fr;
+  // gap: 40px;
+  display: flex;
+  text-align: center;
+  margin: 27px 0;
+  align-items: center;
 }
-.desc_img2{
-    width: 90%;
-    margin: 20px auto;
-    display: block;
+.why_title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
-.bottoma{
-        background-color: #1f242a;
-    padding: 20px 20px 21px;
-    .bottomp{
-        font-size: 14px;
+.sbcxk {
+  font-size: 27px;
+  margin-top: 0px;
+  text-align: center;
+}
+.desc_img2 {
+  width: 90%;
+  margin: 20px auto;
+  display: block;
+}
+.bottoma {
+  background-color: #1f242a;
+  padding: 20px 20px 21px;
+  .bottomp {
+    font-size: 14px;
     color: rgb(255, 255, 255);
     text-align: center;
-    }
+  }
+}
+.abotomm {
+  display: flex;
+  align-items: center;
+}
+.abotomm_sui {
+  font-weight: 600;
+  margin-left: 20px;
+  flex: 1 1 0%;
+  text-align: left;
+  font-size: 16px;
+  margin: 20px 0 20px 15px;
+}
+.abotommimg {
+  width: 41px;
+  height: 41px;
+}
+.bbbom {
+  background-color: #1f242a;
+  padding: 20px 20px 21px;
+}
+.bomp {
+  font-size: 14px;
+  color: rgb(255, 255, 255);
+  text-align: center;
 }
 </style>

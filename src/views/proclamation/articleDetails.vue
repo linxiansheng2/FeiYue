@@ -7,7 +7,7 @@ export default {
 import { ref, reactive,onMounted } from 'vue'
 import { useRoute } from  'vue-router'
 import $api from '@/https'
-const route = useRoute() // this.$route
+const route = useRoute();
 const loading = ref<boolean>(true);
 const Store:any = reactive({data:{
   id:'',

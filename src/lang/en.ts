@@ -1,3 +1,4 @@
+// 英语
 export default {
   silder: {
     menu1: 'Home',
@@ -17,6 +18,7 @@ export default {
     menu8_2: 'Whitepaper',
     menu8_3: 'Terms of Service',
     clearcache: 'Clear Cache',
+    score:'Credit Score'
   },
   menu: {
     navAsset: 'Asset Center',
@@ -65,6 +67,7 @@ export default {
     cztitle: 'Fast Deposit',
     czsubtitle: 'Fast and Secure',
     cz: 'Deposit',
+    home01:'Start Trading'
   },
   assetcenter_index: {
     assetcenter1: 'Total Asset Account',
@@ -299,7 +302,7 @@ export default {
     share_index2: 'Up to',
     share_index3: 'Exchange Rebate',
     share_index4: 'Refer Friends',
-    share_index5: `Friends{'''} Earnings`,
+    share_index5: 'Friends Earnings',
     share_index6: 'Rebate Exchange',
     share_index7: 'Referral Link',
     share_index8: 'Referral Code',
@@ -327,6 +330,10 @@ export default {
     share_index30: 'Confirm',
     share_index31: 'Copy Successful',
     share_index32: 'Copy Failed',
+    share_index33:'Dividend Distribution Chart',
+    share_index34:'Enjoy up to 5% dividend',
+    share_index35:'Dividend Distribution Chart',
+    share_index36:'Enjoy team rewards'
   },
   guidance_index: {
     guidance_index1: 'Invitation Records',
@@ -371,6 +378,41 @@ export default {
       pledgerecord_index_navArray2: 'Completed',
     },
   },
+  about_index:{
+    about_index1: 'Fast, secure, and easy trading of over 600 types of cryptocurrencies',
+    about_index2: `The world's leading digital asset trading platform`,
+    about_index3: 'International trading platform',
+    about_index4: `The only fully regulated tokenized quantized exchange with speed, flexibility, and a range of assets required by investors. A powerful trading matching system ensures that all core operations are completed within 100 milliseconds.
+    Special trading features such as K-line ordering, super long and short, multi-stop profit and stop loss, dual-price forced liquidation, and one-click reversal help traders make better decisions.`,
+    about_index32: 'Trading fee as low as',
+    about_index5: 'Trading pairs',
+    about_index6: 'Global regions',
+    about_index7: 'Service support',
+    about_index8: 'About us',
+    about_index9: `Our ultimate goal is to empower the encryption financial service through the Chat GPT intelligent high-frequency quantized trading algorithm, thereby creating a community-based, operationally transparent, and decentralized trading platform. Our important tool is the native token WEB3.0 Token based on the WEB3.0 platform.`,
+    about_index10: `ChatGPT, the existing DAI will be mapped 1:1 to our native token. We are able to provide a more complete and unique blockchain business sector, providing a set of solutions for intelligent high-frequency quantized trading and financial innovation of cryptocurrencies, combined with token economy, empowering global business and finance with greater vitality and participation.`,
+    about_index11: `The world's leading digital asset trading platform`,
+    about_index12: `Behind us is an excellent team of core process engineers who are proficient in disciplines such as mathematics, computer programming, law, economics, financial Chat GPT technology, etc. They have top technical capabilities in platform architecture and iterative optimization, including developing systems and tools to obtain market data, perform trend analysis, run trading simulations, enter and manage orders, provide real-time trading support, risk management, and post-trading services. Therefore, this platform is able to deploy various automated and quantized strategies in a wide range of asset classes.`,
+    about_index13: `The core of this platform is the application of automated trading technology, that is, to achieve automatic trade matching through the leading AMM model. At the same time, we focus on expanding the capability of quantized trading and fully utilize Chat GPT big data and AI technology to optimize our models, so that our users always have opportunities for returns that exceed the market level.`,
+    about_index14: 'Why choose us',
+    about_index15: 'Privacy policy',
+    about_index16: 'Ultimate security achieved through unlimited address creation, 2FA, and multi-layer protection',
+    about_index17: 'Fund security',
+    about_index18: 'Cryptocurrencies provide complete anonymity and no one can access your information except yourself',
+    about_index19: 'Legal compliance',
+    about_index20: 'Proudly holds the MSB financial license issued by the Legal Financial Trading and Reporting Analysis Center',
+    about_index21: 'Customer service',
+    about_index22: '24-hour online customer service, providing consulting services and promptly resolving user issues',
+    about_index23: 'Blog',
+    about_index24: 'Updates and analysis of blockchain links and cryptocurrencies from the perspective of DAI-TEST',
+    about_index25: 'Trade freely, anytime, anywhere',
+    about_index26: 'Multiple terminals perfect compatibility, catering to various trading needs in different scenarios',
+    about_index27: 'Real-time view of market quotes',
+    about_index28: 'Easy buying and selling of BTC, ETH, XRP, OKB, and other digital assets',
+    about_index29: 'Get price change alerts for the cryptocurrencies you follow',
+    about_index30: 'View Bitcoin spot, futures, and options prices',
+    about_index31: 'Compare cryptocurrency prices of various exchanges',
+}, 
   undefined: {
     undefined: 'Page Not Found',
   },
